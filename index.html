@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find a Price That Works — The AI Capex Model</title>
+<style>
+  :root {
+    --ink:      #12161c;
+    --paper:    #e8e4dc;
+    --panel:    #f2efe9;
+    --rule:     #c3bdb1;
+    --muted:    #6b6459;
+    --curve:    #1d4e5f;
+    --capex:    #a8322d;
+    --clears:   #2f6b45;
+    --grid:     #d6d1c6;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 28px; }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  h1 {
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.1; margin: 0 0 12px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  header p { margin: 0; max-width: 62ch; color: var(--muted); font-size: 14px; }
+  header a { color: var(--ink); }
+
+  /* ---- verdict ---- */
+  .verdict {
+    border: 2px solid var(--ink); background: var(--panel);
+    padding: 20px 22px; margin-bottom: 24px;
+  }
+  .verdict-head {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .verdict-line {
+    font-family: Georgia, serif; font-size: clamp(19px, 2.6vw, 26px);
+    line-height: 1.35; margin: 0;
+  }
+  .verdict-line b { font-weight: 600; }
+  .gap { padding: 1px 7px; color: #fff; white-space: nowrap; }
+  .gap.short { background: var(--capex); }
+  .gap.clears { background: var(--clears); }
+
+  /* ---- layout ---- */
+  .cols { display: grid; grid-template-columns: 320px 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+
+  .panel { border: 1px solid var(--rule); background: var(--panel); padding: 18px 18px 6px; }
+  .panel h2 {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 18px; font-weight: 500;
+  }
+
+  .ctl { margin-bottom: 22px; }
+  .ctl-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ctl label { font-size: 13px; font-weight: 600; }
+  .ctl output { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .ctl .note { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.4; margin-top: 3px; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 22px; margin: 6px 0 0; background: transparent; cursor: grab;
+  }
+  input[type=range]:active { cursor: grabbing; }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 2px; background: var(--rule);
+  }
+  input[type=range]::-moz-range-track { height: 2px; background: var(--rule); }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px; margin-top: -5.5px;
+    background: var(--ink); border: 0; border-radius: 0; transform: rotate(45deg);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 11px; height: 11px; background: var(--ink); border: 0; border-radius: 0;
+  }
+  input[type=range]:focus-visible { outline: 2px solid var(--curve); outline-offset: 3px; }
+
+  /* ---- presets ---- */
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
+  .presets button {
+    font: inherit; font-size: 11.5px; padding: 5px 10px;
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--rule); cursor: pointer;
+  }
+  .presets button:hover { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .presets button:focus-visible { outline: 2px solid var(--curve); outline-offset: 2px; }
+
+  /* ---- chart ---- */
+  .chart-wrap { border: 1px solid var(--rule); background: var(--panel); padding: 18px; }
+  svg { display: block; width: 100%; height: auto; }
+  .axis-line { stroke: var(--ink); stroke-width: 1; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .tick { font-size: 10px; fill: var(--muted); }
+  .axis-label { font-size: 10px; fill: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+  .curve-path { fill: none; stroke: var(--curve); stroke-width: 2.5; }
+  .curve-fill { fill: var(--curve); opacity: 0.07; }
+  .capex-line { stroke: var(--capex); stroke-width: 2; stroke-dasharray: 7 4; }
+  .capex-tag { font-size: 11px; fill: var(--capex); font-weight: 600; }
+  .peak-dot { fill: var(--panel); stroke: var(--curve); stroke-width: 2.5; }
+  .peak-tag { font-size: 11px; fill: var(--curve); font-weight: 600; }
+  .peak-stem { stroke: var(--curve); stroke-width: 1; stroke-dasharray: 2 3; }
+
+  /* ---- readout ---- */
+  .readout {
+    margin-top: 18px; border-top: 1px solid var(--rule); padding-top: 16px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 560px) { .readout { grid-template-columns: 1fr 1fr; } }
+  .stat .k {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 4px;
+  }
+  .stat .v { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .stat .v.short { color: var(--capex); }
+  .stat .v.clears { color: var(--clears); }
+
+  /* ---- math ---- */
+  .math {
+    margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 22px;
+    color: var(--muted); font-size: 13.5px; max-width: 78ch;
+  }
+  .math h2 {
+    font-family: Georgia, serif; font-size: 17px; color: var(--ink);
+    margin: 0 0 12px; font-weight: 600; letter-spacing: 0;
+    text-transform: none;
+  }
+  .math p { margin: 0 0 12px; }
+  .math .eq {
+    background: var(--panel); border-left: 2px solid var(--curve);
+    padding: 12px 14px; margin: 14px 0; color: var(--ink); font-size: 13.5px;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .math strong { color: var(--ink); font-weight: 600; }
+  .math a { color: var(--ink); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .curve-path, .capex-line, .peak-dot, .peak-stem { transition: d .18s ease, cy .18s ease, cx .18s ease, y1 .18s ease, y2 .18s ease; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Case 4 · Interactive model</div>
+    <h1>Find a price that works.</h1>
+    <p>Every bull case for the AI build-out treats the agent's price as a free variable. It isn't. Firms only replace a worker when the agent is cheap enough to be worth the trouble — so adoption falls as price rises, and revenue is the product of two terms pulling against each other. That product has a maximum. Drag the price and watch it fall off on both sides. The question is whether the peak clears the capex.</p>
+  </header>
+
+  <div class="verdict" id="verdict">
+    <div class="verdict-head">The verdict</div>
+    <p class="verdict-line" id="verdict-line"></p>
+  </div>
+
+  <div class="cols">
+
+    <div class="panel">
+      <h2>Presets</h2>
+      <div class="presets" id="presets">
+        <button data-p="essay">Essay defaults</button>
+        <button data-p="software">Case 1 · Software</button>
+        <button data-p="replace">Case 2 · Replacement</button>
+        <button data-p="augment">Case 3 · Augmentation</button>
+        <button data-p="bull">Maximum bull</button>
+      </div>
+
+      <h2>Assumptions</h2>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="price">Agent price</label><output id="price-o"></output></div>
+        <input type="range" id="price" min="1" max="50" step="0.5" value="12">
+        <span class="note">What a firm pays for the agent, as a share of the wage it works against.</span>
+      </div>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="workers">Workers</label><output id="workers-o"></output></div>
+        <input type="range" id="workers" min="1" max="90" step="1" value="70">
+        <span class="note">Size of the labor pool in play, in millions.</span>
+      </div>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="wage">Average wage</label><output id="wage-o"></output></div>
+        <input type="range" id="wage" min="40" max="250" step="1" value="107">
+        <span class="note">Annual, in thousands.</span>
+      </div>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="phic">Walk-away price</label><output id="phic-o"></output></div>
+        <input type="range" id="phic" min="5" max="80" step="1" value="40">
+        <span class="note">The price at which the agent stops being worth the disruption and adoption goes to zero. This sets the shape of the curve.</span>
+      </div>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="ceiling">Adoption ceiling</label><output id="ceiling-o"></output></div>
+        <input type="range" id="ceiling" min="5" max="100" step="1" value="100">
+        <span class="note">The most of the pool that ever adopts, even at a price of zero. Scales the whole curve.</span>
+      </div>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="central">Stays centralized</label><output id="central-o"></output></div>
+        <input type="range" id="central" min="10" max="100" step="1" value="100">
+        <span class="note">The share of spend that lands on hosted frontier models rather than open weights on a laptop.</span>
+      </div>
+
+      <div class="ctl">
+        <div class="ctl-top"><label for="capex">Annual capex</label><output id="capex-o"></output></div>
+        <input type="range" id="capex" min="100" max="1200" step="10" value="700">
+        <span class="note">The line to clear. Roughly $700B guided for 2026.</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="chart-wrap">
+        <svg id="chart" viewBox="0 0 640 400" role="img" aria-labelledby="chart-title">
+          <title id="chart-title">Annual revenue against agent price, with the capex line</title>
+          <g id="grid"></g>
+          <path id="fill" class="curve-fill"></path>
+          <path id="curve" class="curve-path"></path>
+          <line id="capexline" class="capex-line"></line>
+          <text id="capextag" class="capex-tag"></text>
+          <line id="peakstem" class="peak-stem"></line>
+          <circle id="peakdot" class="peak-dot" r="5"></circle>
+          <text id="peaktag" class="peak-tag"></text>
+          <line id="xaxis" class="axis-line"></line>
+          <line id="yaxis" class="axis-line"></line>
+          <g id="xticks"></g>
+          <g id="yticks"></g>
+          <text class="axis-label" x="320" y="392" text-anchor="middle">Agent price — % of wage</text>
+          <text class="axis-label" x="-200" y="14" transform="rotate(-90)" text-anchor="middle">Annual revenue</text>
+        </svg>
+
+        <div class="readout">
+          <div class="stat">
+            <div class="k">Revenue at this price</div>
+            <div class="v" id="rev-now"></div>
+          </div>
+          <div class="stat">
+            <div class="k">Best possible revenue</div>
+            <div class="v" id="rev-peak"></div>
+          </div>
+          <div class="stat">
+            <div class="k">Peak vs. capex</div>
+            <div class="v" id="rev-gap"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="math">
+        <h2>What the model does</h2>
+        <p>Revenue is the wage base times price times adoption. The move that matters is refusing to let price and adoption float independently — adoption is a <em>function</em> of price:</p>
+        <div class="eq">R(φ) = N · w · φ · a(φ)&nbsp;&nbsp;&nbsp;where&nbsp;&nbsp;a(φ) = A · max(0, 1 − φ/φ<sub>c</sub>)</div>
+        <p>Adoption falls linearly from its ceiling <strong>A</strong> to zero at the walk-away price <strong>φ<sub>c</sub></strong>. That makes revenue a downward parabola, and a parabola has a top. Revenue peaks at exactly half the walk-away price, which gives a hard ceiling on what the labs can ever earn from this pool:</p>
+        <div class="eq">φ* = φ<sub>c</sub> / 2&nbsp;&nbsp;&nbsp;&nbsp;R<sub>max</sub> = κ · A · N · w · φ<sub>c</sub> / 4</div>
+        <p>That ceiling is the whole argument. The labs are not choosing between a good price and a bad one — they are choosing a point on a curve whose peak may already sit below the capex line, in which case <strong>no pricing strategy clears it.</strong> Not because the technology failed, but because the shape of the market forbids it.</p>
+        <p>The linear decay is the friendliest assumption available. Anything convex — firms balking harder as price climbs — pulls the peak down further. If you can find a combination of inputs that clears the line without every variable breaking favorably at once, you've found something I couldn't.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ids = ["price","workers","wage","phic","ceiling","central","capex"];
+  var el = {};
+  ids.forEach(function (k) { el[k] = document.getElementById(k); el[k + "_o"] = document.getElementById(k + "-o"); });
+
+  var PRESETS = {
+    essay:    { price: 12, workers: 70, wage: 107, phic: 40, ceiling: 100, central: 100, capex: 700 },
+    software: { price: 13.5, workers: 2, wage: 133, phic: 30, ceiling: 100, central: 100, capex: 700 },
+    replace:  { price: 25, workers: 70, wage: 100, phic: 50, ceiling: 100, central: 100, capex: 700 },
+    augment:  { price: 10, workers: 70, wage: 100, phic: 40, ceiling: 100, central: 100, capex: 700 },
+    bull:     { price: 20, workers: 90, wage: 150, phic: 60, ceiling: 100, central: 100, capex: 700 }
+  };
+
+  // geometry
+  var W = 640, H = 400, ML = 62, MR = 26, MT = 26, MB = 44;
+  var PW = W - ML - MR, PH = H - MT - MB;
+  var XMAX = 50; // % of wage
+
+  function $(id) { return document.getElementById(id); }
+  function attr(n, o) { for (var k in o) n.setAttribute(k, o[k]); }
+
+  function money(b) {
+    if (b >= 1000) return "$" + (b / 1000).toFixed(2).replace(/\.?0+$/, "") + "T";
+    return "$" + (b < 10 ? b.toFixed(1) : Math.round(b)) + "B";
+  }
+
+  function read() {
+    var v = {};
+    ids.forEach(function (k) { v[k] = parseFloat(el[k].value); });
+    return v;
+  }
+
+  // R in $B, given price as a percent
+  function revenue(pct, v) {
+    var phi = pct / 100, phic = v.phic / 100;
+    var adopt = Math.max(0, 1 - phi / phic) * (v.ceiling / 100);
+    var base = v.workers * 1e6 * v.wage * 1e3;    // dollars
+    return base * phi * adopt * (v.central / 100) / 1e9;
+  }
+
+  function render() {
+    var v = read();
+
+    // labels
+    el.price_o.value  = v.price.toFixed(1) + "% of wage";
+    el.workers_o.value = v.workers + "M";
+    el.wage_o.value   = "$" + v.wage + "k";
+    el.phic_o.value   = v.phic + "% of wage";
+    el.ceiling_o.value = v.ceiling + "%";
+    el.central_o.value = v.central + "%";
+    el.capex_o.value  = money(v.capex) + "/yr";
+
+    // peak
+    var peakPct = v.phic / 2;
+    var rPeak = revenue(peakPct, v);
+    var rNow  = revenue(v.price, v);
+
+    // y scale
+    var yTop = Math.max(rPeak, v.capex) * 1.18;
+    if (yTop <= 0) yTop = 100;
+
+    var X = function (p) { return ML + (p / XMAX) * PW; };
+    var Y = function (r) { return MT + PH - (r / yTop) * PH; };
+
+    // curve
+    var d = "", f = "", N = 200;
+    for (var i = 0; i <= N; i++) {
+      var p = (i / N) * XMAX;
+      var x = X(p), y = Y(revenue(p, v));
+      d += (i ? " L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+    }
+    f = d + " L" + X(XMAX).toFixed(1) + " " + Y(0).toFixed(1) + " L" + X(0).toFixed(1) + " " + Y(0).toFixed(1) + " Z";
+    $("curve").setAttribute("d", d);
+    $("fill").setAttribute("d", f);
+
+    // capex line
+    var cy = Y(v.capex);
+    attr($("capexline"), { x1: ML, x2: ML + PW, y1: cy, y2: cy });
+    attr($("capextag"), { x: ML + PW, y: cy - 7, "text-anchor": "end" });
+    $("capextag").textContent = "capex  " + money(v.capex) + "/yr";
+
+    // peak marker
+    var px = X(peakPct), py = Y(rPeak);
+    attr($("peakdot"), { cx: px, cy: py });
+    attr($("peakstem"), { x1: px, x2: px, y1: py, y2: Y(0) });
+    var flip = px > ML + PW * 0.72;
+    attr($("peaktag"), { x: flip ? px - 10 : px + 10, y: py - 9, "text-anchor": flip ? "end" : "start" });
+    $("peaktag").textContent = "peak  " + money(rPeak) + " at " + peakPct.toFixed(1) + "%";
+
+    // axes
+    attr($("xaxis"), { x1: ML, x2: ML + PW, y1: MT + PH, y2: MT + PH });
+    attr($("yaxis"), { x1: ML, x2: ML, y1: MT, y2: MT + PH });
+
+    // ticks + grid
+    var xt = "", g = "", yt = "";
+    for (var p = 0; p <= XMAX; p += 10) {
+      xt += '<text class="tick" x="' + X(p) + '" y="' + (MT + PH + 16) + '" text-anchor="middle">' + p + '%</text>';
+    }
+    var step = niceStep(yTop);
+    for (var r = 0; r <= yTop; r += step) {
+      var y = Y(r);
+      if (y < MT - 1) break;
+      g  += '<line class="gridline" x1="' + ML + '" x2="' + (ML + PW) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '"/>';
+      yt += '<text class="tick" x="' + (ML - 9) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end">' + (r === 0 ? "0" : money(r)) + '</text>';
+    }
+    $("grid").innerHTML = g;
+    $("xticks").innerHTML = xt;
+    $("yticks").innerHTML = yt;
+
+    // readout
+    var clears = rPeak >= v.capex;
+    var gap = Math.abs(rPeak - v.capex);
+    $("rev-now").textContent = money(rNow);
+    $("rev-peak").textContent = money(rPeak);
+    var gapEl = $("rev-gap");
+    gapEl.textContent = (clears ? "+" : "−") + money(gap).slice(1) + (clears ? " over" : " short");
+    gapEl.className = "v " + (clears ? "clears" : "short");
+
+    // verdict
+    var line;
+    if (clears) {
+      line = 'At best, this pool earns <b>' + money(rPeak) + '/yr</b> — priced at ' + peakPct.toFixed(1) +
+             '% of wage, with ' + v.ceiling + '% of ' + v.workers + 'M workers adopting and ' + v.central +
+             '% of spend staying centralized. That <span class="gap clears">clears ' + money(v.capex) +
+             '</span> by ' + money(gap) + '. Now ask yourself whether you believe every one of those numbers at once.';
+    } else {
+      line = 'The best this pool can <em>ever</em> earn is <b>' + money(rPeak) + '/yr</b>, at a price of ' +
+             peakPct.toFixed(1) + '% of wage. Against ' + money(v.capex) + ' of annual capex, that is <span class="gap short">' +
+             money(gap) + ' short</span> — and it is the <em>peak</em>. Every other price on the curve is worse. ' +
+             'No pricing strategy clears the line.';
+    }
+    $("verdict-line").innerHTML = line;
+  }
+
+  function niceStep(top) {
+    var raw = top / 5;
+    var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    var n = raw / mag;
+    var s = n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10;
+    return s * mag;
+  }
+
+  ids.forEach(function (k) { el[k].addEventListener("input", render); });
+
+  document.getElementById("presets").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    var p = PRESETS[b.dataset.p];
+    ids.forEach(function (k) { el[k].value = p[k]; });
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
