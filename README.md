@@ -296,7 +296,7 @@ build-out ([Forbes](https://www.forbes.com/sites/jasonkirsch/2026/06/02/the-ai-c
 
 For the cases that follow, the capex is the fixed quantity and demand is the open question. Rather than assert a revenue
 figure I have to defend, I try to build the demand side from the ground up. I built a simple model, and will present a
-few potential outcomes. An interested reader can substitute their assumptions into the model [at the site]. If you can
+few potential outcomes. An interested reader can substitute their assumptions into the model [at the site](https://kmgreen2.github.io/takingourjerbs/). If you can
 find a set of inputs that clears the committed line without assuming every variable breaks the same way at once, the
 model will show it.
 
