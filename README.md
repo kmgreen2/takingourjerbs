@@ -322,7 +322,7 @@ linter, a runtime that crashes or doesn't. The agentic loop functions because it
 the tests, read the error, retry. Try to run the program, look at the output, retry. And so on. This is the entire
 reason agentic coding is the leading use case, and it is a property of the domain, not of the model.
 
-> Sidebar on Verification: Perfect verification is not impossible in theory and incomplete in practice. Its incompleteness is
+> Sidebar on Verification: Complete verification is possible in theory but never complete in practice. Its incompleteness is
 > precisely where a probabilistic generator's errors hide. Tests verify the paths you and the agent thought to test.
 > Types verify shape, not intent. The gap between "compiles and passes tests" and "does what was meant" is exactly the
 > gap a plausibility-optimized model is built to slip through. Closing it would require knowing the intent and the
