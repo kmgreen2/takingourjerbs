@@ -420,7 +420,7 @@ software work, at a spend rate borrowed from the one field that does.
 
 ### Case 4: Decide for yourself
 
-I have provided a website that allows you to model this for yourself.  Have fun: [link].
+I have provided a website that allows you to model this for yourself: [Have fun](https://kmgreen2.github.io/takingourjerbs/)
 
 ### The Price Contradiction
 
