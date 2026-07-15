@@ -342,13 +342,13 @@ a [software developer](https://www.bls.gov/ooh/computer-and-information-technolo
 1,895,000 × $18,000 = $34.1B / year
 ```
 
-Assuming universal adoption at the highest price a big tech, AI-forward company is willing to pay, is about $30B a year.
+Assuming universal adoption at the highest price a big tech, AI-forward company is willing to pay, is about $34B a year.
 This means even total success in the one domain where AI unambiguously works tops out near 13.5% of a wage, not 100% of
 it. Software alone cannot justify the build-out. We need a bigger slice of the labor market.
 
 ### Case 2: White-Collar Replacement
 
-A market size of `$30.6B/year` is huge, but doesn't justify the capex. To justify the build-out, we need to disrupt a
+A market size of `$34.1B/year` is huge, but doesn't justify the capex. To justify the build-out, we need to disrupt a
 larger part of the labor market. One way to do this would be to expand from software development to all white-collar
 work.  Let's go crazy and even assume a large fraction of jobs can be replaced by AI agents.
 
@@ -394,11 +394,11 @@ load-bearing, and both are exactly the limitations the first half of this essay 
 Ok, so complete replacement of white-collar work seems unlikely, let's reason though a middle ground that fits the
 latest messaging from the AI companies. Let's look at white-collar augmentation.
 
-There are roughly 70M white-collar jobs in the US, with average wages of \$107k/year.  Let's assume a similar token spend
+There are roughly 70M white-collar jobs in the US, with average wages of \$85k/year.  Let's assume a similar token spend
 as software development to get:
 
 ```
-70,000,000 × $100,000 × 0.10 = $700B / year
+70,000,000 × $85,540 × 0.10 = $599B / year
 ```
 
 This means if every one of the 70M American professionals gets 1/10th of their salary in tokens, we get very close to the
@@ -427,7 +427,7 @@ capex line.  While promising, let me explain why this outcome is not likely.
 5. **Regulated domains**: Medicine, law, audit, finance have liability regimes that require a named human to
    sign. Augmentation there is capped by statute, not capability.
 
-$700B requires universal adoption, sustained forever, in domains that have none of the cheap verification that makes
+$599B requires universal adoption, sustained forever, in domains that have none of the cheap verification that makes
 software work, at a spend rate borrowed from the one field that does.
 
 ### Case 4: Decide for yourself

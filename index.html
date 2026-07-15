@@ -148,9 +148,6 @@
   .peak-dot { fill: var(--panel); stroke: var(--curve); stroke-width: 2.5; }
   .peak-tag { font-size: 11px; fill: var(--curve); font-weight: 600; }
   .peak-stem { stroke: var(--curve); stroke-width: 1; stroke-dasharray: 2 3; }
-  .price-dot { fill: var(--ink); }
-  .price-stem { stroke: var(--ink); stroke-width: 1; }
-  .price-tag { font-size: 11px; fill: var(--ink); font-weight: 600; }
 
   /* ---- readout ---- */
   .readout {
@@ -212,7 +209,7 @@
     <a href="https://github.com/kmgreen2/takingourjerbs/blob/main/README.md">Essay</a>
     <div class="eyebrow">Interactive model</div>
     <h1>Find a price that works.</h1>
-    <p>Every bull case for the AI build-out treats the agent's price as a free variable. It isn't. Firms only replace a worker when the agent is cheap enough to be worth the trouble — so adoption falls as price rises, and revenue is the product of two terms pulling against each other. That product has a maximum. Drag the price and watch it fall off on both sides. The question is whether the peak clears the capex.</p>
+    <p>Every bull case for the AI build-out treats the agent's price as a free variable. It isn't. Firms only replace a worker when the agent is cheap enough to be worth the trouble — so adoption falls as price rises, and revenue is the product of two terms pulling against each other. That product has a maximum, and the market is forced toward it: the labs' best possible year is the top of this curve. Set the structural inputs and the question is simple — does the peak clear the capex?</p>
   </header>
 
   <div class="verdict" id="verdict">
@@ -242,12 +239,6 @@
           <button data-s="logit" aria-pressed="false">Logit</button>
         </div>
         <span class="note" id="shape-note"></span>
-      </div>
-
-      <div class="ctl">
-        <div class="ctl-top"><label for="price">Agent price</label><output id="price-o"></output></div>
-        <input type="range" id="price" min="1" max="100" step="0.5" value="12">
-        <span class="note">What a firm pays for the agent, as a share of the wage it works against.</span>
       </div>
 
       <div class="ctl">
@@ -295,9 +286,6 @@
           <line id="peakstem" class="peak-stem"></line>
           <circle id="peakdot" class="peak-dot" r="5"></circle>
           <text id="peaktag" class="peak-tag"></text>
-          <line id="pricestem" class="price-stem"></line>
-          <circle id="pricedot" class="price-dot" r="4"></circle>
-          <text id="pricetag" class="price-tag"></text>
           <line id="xaxis" class="axis-line"></line>
           <line id="yaxis" class="axis-line"></line>
           <g id="xticks"></g>
@@ -308,16 +296,16 @@
 
         <div class="readout">
           <div class="stat">
-            <div class="k">Revenue at this price</div>
-            <div class="v" id="rev-now"></div>
-          </div>
-          <div class="stat">
-            <div class="k">Cost per worker</div>
-            <div class="v" id="cost-now"></div>
+            <div class="k">Revenue-max price</div>
+            <div class="v" id="opt-price"></div>
           </div>
           <div class="stat">
             <div class="k">Best possible revenue</div>
             <div class="v" id="rev-peak"></div>
+          </div>
+          <div class="stat">
+            <div class="k">Cost per worker</div>
+            <div class="v" id="cost-now"></div>
           </div>
           <div class="stat">
             <div class="k">Peak vs. capex</div>
@@ -360,16 +348,16 @@
 (function () {
   "use strict";
 
-  var ids = ["price","workers","wage","phic","central","capex"];
+  var ids = ["workers","wage","phic","central","capex"];
   var el = {};
   ids.forEach(function (k) { el[k] = document.getElementById(k); el[k + "_o"] = document.getElementById(k + "-o"); });
 
   var PRESETS = {
-    essay:    { price: 12, workers: 70, wage: 107, phic: 40, central: 100, capex: 700 },
-    software: { price: 13.5, workers: 2, wage: 133, phic: 30, central: 100, capex: 700 },
-    replace:  { price: 25, workers: 70, wage: 100, phic: 50, central: 100, capex: 700 },
-    augment:  { price: 10, workers: 70, wage: 100, phic: 40, central: 100, capex: 700 },
-    bull:     { price: 20, workers: 90, wage: 150, phic: 60, central: 100, capex: 700 }
+    essay:    { workers: 70, wage: 107, phic: 40, central: 100, capex: 700 },
+    software: { workers: 2, wage: 133, phic: 30, central: 100, capex: 700 },
+    replace:  { workers: 70, wage: 85.5, phic: 50, central: 100, capex: 700 },
+    augment:  { workers: 70, wage: 85.5, phic: 40, central: 100, capex: 700 },
+    bull:     { workers: 90, wage: 150, phic: 60, central: 100, capex: 700 }
   };
 
   var shape = "linear";
@@ -444,7 +432,6 @@
     // (and its true peak, which can sit near phic/2) is always visible
     XMAX = Math.min(100, Math.max(50, Math.ceil((v.phic * 1.1) / 10) * 10));
 
-    el.price_o.value  = v.price.toFixed(1) + "% of wage";
     el.workers_o.value = v.workers + "M";
     el.wage_o.value   = "$" + v.wage + "k";
     el.phic_o.value   = v.phic + "% of wage";
@@ -454,7 +441,6 @@
     var peak = findPeak(v);
     var peakPct = peak.pct;
     var rPeak = peak.rev;
-    var rNow  = revenue(v.price, v);
 
     var yTop = Math.max(rPeak, v.capex) * 1.18;
     if (yTop <= 0) yTop = 100;
@@ -484,24 +470,6 @@
     attr($("peaktag"), { x: flip ? px - 10 : px + 10, y: py - 9, "text-anchor": flip ? "end" : "start" });
     $("peaktag").textContent = "peak  " + money(rPeak) + " at " + peakPct.toFixed(1) + "%";
 
-    // price marker ("you are here") — tracks the price slider along the curve.
-    // Hidden when price runs past the visible axis (revenue there is ~0 anyway).
-    var showPrice = v.price <= XMAX;
-    var pdot = $("pricedot"), pstem = $("pricestem"), ptag = $("pricetag");
-    if (showPrice) {
-      var qx = X(v.price), qy = Y(rNow);
-      attr(pdot, { cx: qx, cy: qy, opacity: 1 });
-      attr(pstem, { x1: qx, x2: qx, y1: qy, y2: Y(0), opacity: 1 });
-      var near = Math.abs(qx - px) < 60 && Math.abs(qy - py) < 22;
-      var pflip = qx > ML + PW * 0.72;
-      attr(ptag, { x: pflip ? qx - 9 : qx + 9, y: near ? qy + 16 : qy - 9, "text-anchor": pflip ? "end" : "start", opacity: 1 });
-      ptag.textContent = "you  " + money(rNow);
-    } else {
-      attr(pdot, { opacity: 0 });
-      attr(pstem, { opacity: 0 });
-      attr(ptag, { opacity: 0 });
-    }
-
     attr($("xaxis"), { x1: ML, x2: ML + PW, y1: MT + PH, y2: MT + PH });
     attr($("yaxis"), { x1: ML, x2: ML, y1: MT, y2: MT + PH });
 
@@ -522,9 +490,9 @@
 
     var clears = rPeak >= v.capex;
     var gap = Math.abs(rPeak - v.capex);
-    $("rev-now").textContent = money(rNow);
-    $("cost-now").textContent = perWorker(v.wage, v.price) + "/yr";
+    $("opt-price").textContent = peakPct.toFixed(1) + "% of wage";
     $("rev-peak").textContent = money(rPeak);
+    $("cost-now").textContent = perWorker(v.wage, peakPct) + "/yr";
     var gapEl = $("rev-gap");
     gapEl.textContent = (clears ? "+" : "\u2212") + money(gap).slice(1) + (clears ? " over" : " short");
     gapEl.className = "v " + (clears ? "clears" : "short");
@@ -543,8 +511,7 @@
     }
     $("verdict-line").innerHTML = line;
 
-    // live equation: R = κ · N · w · φ · a(φ), with current values substituted
-    var aNow  = adoption(v.price / 100, v.phic / 100);
+    // live equation: R = κ · N · w · φ · a(φ), evaluated at the forced peak
     var aPeak = adoption(peakPct / 100, v.phic / 100);
     var kap = (v.central / 100);
     function eqRow(labelHtml, phiPct, aVal, rev, cls) {
@@ -561,7 +528,6 @@
     $("liveq").innerHTML =
       '<span class="row"><span class="lab">Formula</span><span class="term">' +
         '<span class="sym">R = κ · N · w · φ · a(φ)</span></span></span>' +
-      eqRow("At your φ", v.price, aNow, rNow, "now") +
       eqRow("At the peak", peakPct, aPeak, rPeak, "");
   }
 
