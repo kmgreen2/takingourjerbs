@@ -155,9 +155,9 @@
   /* ---- readout ---- */
   .readout {
     margin-top: 18px; border-top: 1px solid var(--rule); padding-top: 16px;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
   }
-  @media (max-width: 560px) { .readout { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 680px) { .readout { grid-template-columns: 1fr 1fr; } }
   .stat .k {
     font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted); margin-bottom: 4px;
@@ -246,7 +246,7 @@
 
       <div class="ctl">
         <div class="ctl-top"><label for="price">Agent price</label><output id="price-o"></output></div>
-        <input type="range" id="price" min="1" max="50" step="0.5" value="12">
+        <input type="range" id="price" min="1" max="100" step="0.5" value="12">
         <span class="note">What a firm pays for the agent, as a share of the wage it works against.</span>
       </div>
 
@@ -266,7 +266,7 @@
 
       <div class="ctl">
         <div class="ctl-top"><label for="phic">Walk-away price</label><output id="phic-o"></output></div>
-        <input type="range" id="phic" min="5" max="80" step="1" value="40">
+        <input type="range" id="phic" min="5" max="100" step="1" value="40">
         <span class="note">The price at which the agent stops being worth the disruption and adoption goes to zero. This sets the shape of the curve.</span>
       </div>
 
@@ -310,6 +310,10 @@
           <div class="stat">
             <div class="k">Revenue at this price</div>
             <div class="v" id="rev-now"></div>
+          </div>
+          <div class="stat">
+            <div class="k">Cost per worker</div>
+            <div class="v" id="cost-now"></div>
           </div>
           <div class="stat">
             <div class="k">Best possible revenue</div>
@@ -379,7 +383,7 @@
   // geometry
   var W = 640, H = 400, ML = 62, MR = 26, MT = 26, MB = 44;
   var PW = W - ML - MR, PH = H - MT - MB;
-  var XMAX = 50; // % of wage
+  var XMAX = 50; // % of wage — recomputed per-render from the walk-away price
 
   function $(id) { return document.getElementById(id); }
   function attr(n, o) { for (var k in o) n.setAttribute(k, o[k]); }
@@ -387,6 +391,13 @@
   function money(b) {
     if (b >= 1000) return "$" + (b / 1000).toFixed(2).replace(/\.?0+$/, "") + "T";
     return "$" + (b < 10 ? b.toFixed(1) : Math.round(b)) + "B";
+  }
+
+  // per-worker annual dollars (w and phi are the levers): returns e.g. "$21.4k"
+  function perWorker(wageK, phiPct) {
+    var dollars = wageK * 1000 * (phiPct / 100);
+    if (dollars >= 1000) return "$" + (dollars / 1000).toFixed(1) + "k";
+    return "$" + Math.round(dollars);
   }
 
   function read() {
@@ -429,6 +440,10 @@
   function render() {
     var v = read();
 
+    // price axis extends a little past the walk-away price so the full curve
+    // (and its true peak, which can sit near phic/2) is always visible
+    XMAX = Math.min(100, Math.max(50, Math.ceil((v.phic * 1.1) / 10) * 10));
+
     el.price_o.value  = v.price.toFixed(1) + "% of wage";
     el.workers_o.value = v.workers + "M";
     el.wage_o.value   = "$" + v.wage + "k";
@@ -469,15 +484,23 @@
     attr($("peaktag"), { x: flip ? px - 10 : px + 10, y: py - 9, "text-anchor": flip ? "end" : "start" });
     $("peaktag").textContent = "peak  " + money(rPeak) + " at " + peakPct.toFixed(1) + "%";
 
-    // price marker ("you are here") — tracks the price slider along the curve
-    var qx = X(v.price), qy = Y(rNow);
-    attr($("pricedot"), { cx: qx, cy: qy });
-    attr($("pricestem"), { x1: qx, x2: qx, y1: qy, y2: Y(0) });
-    // keep the price label from colliding with the peak label when they're close
-    var near = Math.abs(qx - px) < 60 && Math.abs(qy - py) < 22;
-    var pflip = qx > ML + PW * 0.72;
-    attr($("pricetag"), { x: pflip ? qx - 9 : qx + 9, y: near ? qy + 16 : qy - 9, "text-anchor": pflip ? "end" : "start" });
-    $("pricetag").textContent = "you  " + money(rNow);
+    // price marker ("you are here") — tracks the price slider along the curve.
+    // Hidden when price runs past the visible axis (revenue there is ~0 anyway).
+    var showPrice = v.price <= XMAX;
+    var pdot = $("pricedot"), pstem = $("pricestem"), ptag = $("pricetag");
+    if (showPrice) {
+      var qx = X(v.price), qy = Y(rNow);
+      attr(pdot, { cx: qx, cy: qy, opacity: 1 });
+      attr(pstem, { x1: qx, x2: qx, y1: qy, y2: Y(0), opacity: 1 });
+      var near = Math.abs(qx - px) < 60 && Math.abs(qy - py) < 22;
+      var pflip = qx > ML + PW * 0.72;
+      attr(ptag, { x: pflip ? qx - 9 : qx + 9, y: near ? qy + 16 : qy - 9, "text-anchor": pflip ? "end" : "start", opacity: 1 });
+      ptag.textContent = "you  " + money(rNow);
+    } else {
+      attr(pdot, { opacity: 0 });
+      attr(pstem, { opacity: 0 });
+      attr(ptag, { opacity: 0 });
+    }
 
     attr($("xaxis"), { x1: ML, x2: ML + PW, y1: MT + PH, y2: MT + PH });
     attr($("yaxis"), { x1: ML, x2: ML, y1: MT, y2: MT + PH });
@@ -500,6 +523,7 @@
     var clears = rPeak >= v.capex;
     var gap = Math.abs(rPeak - v.capex);
     $("rev-now").textContent = money(rNow);
+    $("cost-now").textContent = perWorker(v.wage, v.price) + "/yr";
     $("rev-peak").textContent = money(rPeak);
     var gapEl = $("rev-gap");
     gapEl.textContent = (clears ? "+" : "\u2212") + money(gap).slice(1) + (clears ? " over" : " short");
