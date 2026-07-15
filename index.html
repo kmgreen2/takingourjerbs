@@ -89,6 +89,23 @@
   .maxrow input:focus-visible { outline: 2px solid var(--curve); outline-offset: 1px; }
   .maxrow .unit { font-variant-numeric: tabular-nums; }
 
+  /* curve-shape selector */
+  .shape { margin-bottom: 22px; }
+  .shape > label {
+    display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px;
+  }
+  .segmented { display: flex; border: 1px solid var(--rule); }
+  .segmented button {
+    flex: 1; font: inherit; font-size: 12px; padding: 6px 4px;
+    background: transparent; color: var(--muted); border: 0;
+    border-right: 1px solid var(--rule); cursor: pointer;
+  }
+  .segmented button:last-child { border-right: 0; }
+  .segmented button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+  .segmented button:focus-visible { outline: 2px solid var(--curve); outline-offset: -2px; }
+  .shape .note { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.4; margin-top: 7px; }
+  .shape .note b { color: var(--ink); font-weight: 600; }
+
   input[type=range] {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 22px; margin: 6px 0 0; background: transparent; cursor: grab;
@@ -175,7 +192,7 @@
 
   <header>
     <a href="https://github.com/kmgreen2/takingourjerbs/blob/main/README.md">Essay</a>
-    <div class="eyebrow">Interactive model</div>
+    <div class="eyebrow">Case 4 · Interactive model</div>
     <h1>Find a price that works.</h1>
     <p>Every bull case for the AI build-out treats the agent's price as a free variable. It isn't. Firms only replace a worker when the agent is cheap enough to be worth the trouble — so adoption falls as price rises, and revenue is the product of two terms pulling against each other. That product has a maximum. Drag the price and watch it fall off on both sides. The question is whether the peak clears the capex.</p>
   </header>
@@ -198,6 +215,16 @@
       </div>
 
       <h2>Assumptions</h2>
+
+      <div class="shape">
+        <label>Adoption curve shape</label>
+        <div class="segmented" id="shape" role="group" aria-label="Adoption curve shape">
+          <button data-s="linear" aria-pressed="true">Linear</button>
+          <button data-s="power" aria-pressed="false">Power</button>
+          <button data-s="logit" aria-pressed="false">Logit</button>
+        </div>
+        <span class="note" id="shape-note"></span>
+      </div>
 
       <div class="ctl">
         <div class="ctl-top"><label for="price">Agent price</label><output id="price-o"></output></div>
@@ -296,8 +323,9 @@
         <p>The <strong>4</strong> is two halves multiplied: half from the optimal price being φ<sub>c</sub>/2, half from adoption sitting at its midpoint when you're there. At the best possible price you capture exactly a quarter of κ·A·N·w·φ<sub>c</sub>, and nothing does better.</p>
 
         <h2>The assumption that matters</h2>
-        <p>That clean quarter depends entirely on adoption decaying <em>linearly</em>. Linear is the friendliest curve to the bull case: it assumes firms give up the seat at a steady, forgiving rate as the price climbs. Any convex decay — firms balking harder the more you charge, which is the more realistic shape — bends the curve down and pulls both φ* and R<sub>max</sub> lower. So the ceiling this model reports is the <strong>optimistic</strong> bound, not a worst case.</p>
-        <p>That ceiling is the whole argument. The labs are not choosing between a good price and a bad one — they are choosing a point on a curve whose peak may already sit below the capex line, in which case <strong>no pricing strategy clears it.</strong> Not because the technology failed, but because the shape of the market forbids it. If you can find a combination of inputs that clears the line without every variable breaking favorably at once, you've found something I couldn't.</p>
+        <p>That clean quarter is specific to the <em>linear</em> curve, and linear is the <strong>least</strong> generous of the three shapes — not the most. It assumes every firm shares one walk-away price, so adoption falls off a single cliff at φ<sub>c</sub>. Real firms have a spread of walk-away prices, which fattens the shoulder of the curve and lets more of them keep buying at moderate prices. The <strong>Power</strong> and <strong>Logit</strong> shapes in the selector both capture that, and both lift the peak <em>above</em> the linear quarter — neither shape makes the argument easier for the bear.</p>
+        <p>The two are generous in different ways. <strong>Power</strong> holds adoption high across low-to-mid prices, so it tends to produce the tallest peak of the three. <strong>Logit</strong> is the standard economics demand curve and the most defensible: it never hits a hard zero, so a stubborn tail of high-tolerance firms always pays something. This is why the shape selector matters more than any single slider. If you want to stress-test the argument, run it under Power and Logit, not just linear — and see whether the peak clears the capex line. If even these generous curves can't get the peak far enough ahead of the spend, the price wall was never the weak point: the ceiling is structural.</p>
+        <p>That ceiling is the whole argument. The labs are not choosing between a good price and a bad one — they are choosing a point on a curve whose peak may already sit below the capex line, in which case <strong>no pricing strategy clears it.</strong> Not because the technology failed, but because the shape of the market forbids it. If you can find a combination of inputs — under any curve shape — that clears the line without every variable breaking favorably at once, you've found something I couldn't.</p>
       </div>
       </div>
     </div>
@@ -321,6 +349,14 @@
     bull:     { price: 20, workers: 90, wage: 150, phic: 60, ceiling: 100, central: 100, capex: 700 }
   };
 
+  var shape = "linear";
+
+  var SHAPE_NOTES = {
+    linear: "<b>Linear.</b> Firms drop out at a steady rate as price climbs, and adoption hits zero at the walk-away price φ<sub>c</sub>. Simplest to reason about — this is the one with the clean φ<sub>c</sub>/2 peak — but it assumes every firm shares the same walk-away point, which makes it the least generous of the three.",
+    power:  "<b>Power.</b> Adoption holds up better at low-to-mid prices and only collapses near φ<sub>c</sub> (a √ curve). This is what you get when firms have a spread of walk-away prices instead of one shared cliff. More generous than linear, and more realistic.",
+    logit:  "<b>Logit (S-curve).</b> The standard economics demand shape, and the most defensible of the three. Adoption is highest when cheap, falls fastest around the midpoint, and never quite reaches zero — a stubborn tail of high-tolerance firms always pays. If the peak still can't clear the line even here, the price wall isn't the reason."
+  };
+
   // geometry
   var W = 640, H = 400, ML = 62, MR = 26, MT = 26, MB = 44;
   var PW = W - ML - MR, PH = H - MT - MB;
@@ -340,12 +376,39 @@
     return v;
   }
 
+  // adoption fraction (0..A) at a given price fraction, by shape
+  function adoption(phi, phic, A) {
+    if (shape === "power") {
+      // spread of walk-away prices -> fatter shoulder, still zero at phic
+      return phi >= phic ? 0 : A * Math.pow(1 - phi / phic, 0.5);
+    }
+    if (shape === "logit") {
+      // S-curve: half-drop at midpoint phic/2, soft tail (never hard zero)
+      var mid = phic / 2;
+      var beta = 9 / phic;            // slope scaled to phic so curves stay comparable
+      return A / (1 + Math.exp(beta * (phi - mid)));
+    }
+    // linear (default): single shared walk-away price
+    return Math.max(0, 1 - phi / phic) * A;
+  }
+
   // R in $B, given price as a percent
   function revenue(pct, v) {
     var phi = pct / 100, phic = v.phic / 100;
-    var adopt = Math.max(0, 1 - phi / phic) * (v.ceiling / 100);
+    var adopt = adoption(phi, phic, v.ceiling / 100);
     var base = v.workers * 1e6 * v.wage * 1e3;    // dollars
     return base * phi * adopt * (v.central / 100) / 1e9;
+  }
+
+  // numeric argmax over the visible price range — correct for every shape,
+  // and it agrees with the closed-form phic/2 on the linear curve.
+  function findPeak(v) {
+    var best = -1, bp = 0;
+    for (var p = 0; p <= XMAX; p += 0.05) {
+      var r = revenue(p, v);
+      if (r > best) { best = r; bp = p; }
+    }
+    return { pct: bp, rev: best };
   }
 
   function render() {
@@ -360,9 +423,10 @@
     el.central_o.value = v.central + "%";
     el.capex_o.value  = money(v.capex) + "/yr";
 
-    // peak
-    var peakPct = v.phic / 2;
-    var rPeak = revenue(peakPct, v);
+    // peak (numeric argmax — correct for every curve shape)
+    var peak = findPeak(v);
+    var peakPct = peak.pct;
+    var rPeak = peak.rev;
     var rNow  = revenue(v.price, v);
 
     // y scale
@@ -485,6 +549,20 @@
     render();
   });
 
+  // curve-shape selector
+  function setShapeNote() { $("shape-note").innerHTML = SHAPE_NOTES[shape]; }
+  document.getElementById("shape").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    shape = b.dataset.s;
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (btn) {
+      btn.setAttribute("aria-pressed", btn === b ? "true" : "false");
+    });
+    setShapeNote();
+    render();
+  });
+
+  setShapeNote();
   render();
 })();
 </script>
