@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="google-site-verification" content="-zc2RW53mYfTyAjUuQzeT0NRxtEesb3O7ZSBQ9vv7fg" />
 <meta charset="utf-8">
+<meta name="google-site-verification" content="-zc2RW53mYfTyAjUuQzeT0NRxtEesb3O7ZSBQ9vv7fg" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Find a Price That Works — The AI Capex Model</title>
 <style>
@@ -76,6 +76,18 @@
   .ctl label { font-size: 13px; font-weight: 600; }
   .ctl output { font-size: 13px; font-variant-numeric: tabular-nums; }
   .ctl .note { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.4; margin-top: 3px; }
+  .maxrow {
+    display: flex; justify-content: flex-end; align-items: baseline; gap: 5px;
+    font-size: 11px; color: var(--muted); margin-top: 4px;
+  }
+  .maxrow input {
+    font: inherit; font-size: 11px; width: 62px; text-align: right;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--rule); padding: 2px 5px; border-radius: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .maxrow input:focus-visible { outline: 2px solid var(--curve); outline-offset: 1px; }
+  .maxrow .unit { font-variant-numeric: tabular-nums; }
 
   input[type=range] {
     -webkit-appearance: none; appearance: none;
@@ -197,12 +209,14 @@
         <div class="ctl-top"><label for="workers">Workers</label><output id="workers-o"></output></div>
         <input type="range" id="workers" min="1" max="90" step="1" value="70">
         <span class="note">Size of the labor pool in play, in millions.</span>
+        <div class="maxrow">max <input type="number" id="workers-max" min="1" step="1" value="90"><span class="unit">M</span></div>
       </div>
 
       <div class="ctl">
         <div class="ctl-top"><label for="wage">Average wage</label><output id="wage-o"></output></div>
         <input type="range" id="wage" min="40" max="250" step="1" value="107">
         <span class="note">Annual, in thousands.</span>
+        <div class="maxrow">max $<input type="number" id="wage-max" min="40" step="1" value="250"><span class="unit">k</span></div>
       </div>
 
       <div class="ctl">
@@ -268,12 +282,23 @@
 
       <div class="math">
         <h2>What the model does</h2>
-        <p>Revenue is the wage base times price times adoption. The move that matters is refusing to let price and adoption float independently — adoption is a <em>function</em> of price:</p>
-        <div class="eq">R(φ) = N · w · φ · a(φ)&nbsp;&nbsp;&nbsp;where&nbsp;&nbsp;a(φ) = A · max(0, 1 − φ/φ<sub>c</sub>)</div>
-        <p>Adoption falls linearly from its ceiling <strong>A</strong> to zero at the walk-away price <strong>φ<sub>c</sub></strong>. That makes revenue a downward parabola, and a parabola has a top. Revenue peaks at exactly half the walk-away price, which gives a hard ceiling on what the labs can ever earn from this pool:</p>
-        <div class="eq">φ* = φ<sub>c</sub> / 2&nbsp;&nbsp;&nbsp;&nbsp;R<sub>max</sub> = κ · A · N · w · φ<sub>c</sub> / 4</div>
-        <p>That ceiling is the whole argument. The labs are not choosing between a good price and a bad one — they are choosing a point on a curve whose peak may already sit below the capex line, in which case <strong>no pricing strategy clears it.</strong> Not because the technology failed, but because the shape of the market forbids it.</p>
-        <p>The linear decay is the friendliest assumption available. Anything convex — firms balking harder as price climbs — pulls the peak down further. If you can find a combination of inputs that clears the line without every variable breaking favorably at once, you've found something I couldn't.</p>
+        <p>Revenue is the wage base times price times adoption, kept on frontier models by the centralization share <strong>κ</strong>. The move that matters is refusing to let price and adoption float independently — adoption is a <em>function</em> of price:</p>
+        <div class="eq">R(φ) = κ · N · w · φ · a(φ)&nbsp;&nbsp;&nbsp;where&nbsp;&nbsp;a(φ) = A · max(0, 1 − φ/φ<sub>c</sub>)</div>
+        <p>Read the pieces left to right: <strong>κ</strong> is the fraction of spend that stays centralized rather than fleeing to open weights on a laptop; <strong>N</strong> is the number of workers; <strong>w</strong> is the average wage; <strong>φ</strong> is the agent's price as a share of that wage; and <strong>a(φ)</strong> is the fraction of the pool that adopts at that price. Adoption falls linearly from its ceiling <strong>A</strong> (the most that ever adopt, even at a price near zero) to zero at the walk-away price <strong>φ<sub>c</sub></strong>, where the agent stops being worth the disruption.</p>
+
+        <h2>Where the ceiling comes from</h2>
+        <p>The <strong>max(0, …)</strong> only exists to stop adoption going negative once the price passes φ<sub>c</sub>. Inside the live range — prices from 0 to φ<sub>c</sub>, the only part where anyone is buying — that term is already positive, so it drops away and revenue is a clean downward parabola in φ:</p>
+        <div class="eq">R(φ) = κ · A · N · w · φ · (1 − φ/φ<sub>c</sub>)&nbsp;&nbsp;&nbsp;&nbsp;for 0 ≤ φ ≤ φ<sub>c</sub>&nbsp;&nbsp;(and R = 0 beyond)</div>
+        <p>A downward parabola has a top. Bundle everything that isn't φ into a single constant C = κ·A·N·w, take the derivative, and set the slope to zero — that's the peak:</p>
+        <div class="eq">dR/dφ = C · (1 − 2φ/φ<sub>c</sub>) = 0&nbsp;&nbsp;⟹&nbsp;&nbsp;φ* = φ<sub>c</sub> / 2</div>
+        <p>So the best price is always <em>half</em> the walk-away price: push toward free and you earn nothing per seat; push toward φ<sub>c</sub> and nobody buys; the optimum sits dead center. Substitute φ* back in — at that price both φ and the adoption factor equal one-half — and you get a hard ceiling on what this pool can ever yield:</p>
+        <div class="eq">R<sub>max</sub> = C · (φ<sub>c</sub>/2) · (1/2) = κ · A · N · w · φ<sub>c</sub> / 4</div>
+        <p>The <strong>4</strong> is two halves multiplied: half from the optimal price being φ<sub>c</sub>/2, half from adoption sitting at its midpoint when you're there. At the best possible price you capture exactly a quarter of κ·A·N·w·φ<sub>c</sub>, and nothing does better.</p>
+
+        <h2>The assumption that matters</h2>
+        <p>That clean quarter depends entirely on adoption decaying <em>linearly</em>. Linear is the friendliest curve to the bull case: it assumes firms give up the seat at a steady, forgiving rate as the price climbs. Any convex decay — firms balking harder the more you charge, which is the more realistic shape — bends the curve down and pulls both φ* and R<sub>max</sub> lower. So the ceiling this model reports is the <strong>optimistic</strong> bound, not a worst case.</p>
+        <p>That ceiling is the whole argument. The labs are not choosing between a good price and a bad one — they are choosing a point on a curve whose peak may already sit below the capex line, in which case <strong>no pricing strategy clears it.</strong> Not because the technology failed, but because the shape of the market forbids it. If you can find a combination of inputs that clears the line without every variable breaking favorably at once, you've found something I couldn't.</p>
+      </div>
       </div>
     </div>
 
@@ -427,10 +452,35 @@
 
   ids.forEach(function (k) { el[k].addEventListener("input", render); });
 
+  // editable slider maxima
+  [["workers", "workers-max"], ["wage", "wage-max"]].forEach(function (pair) {
+    var slider = document.getElementById(pair[0]);
+    var box = document.getElementById(pair[1]);
+    function apply() {
+      var floor = parseFloat(slider.min);
+      var m = parseFloat(box.value);
+      if (isNaN(m) || m < floor) return;         // ignore junk until it's valid
+      slider.max = m;
+      if (parseFloat(slider.value) > m) slider.value = m;
+      render();
+    }
+    box.addEventListener("input", apply);
+    box.addEventListener("blur", function () {
+      var floor = parseFloat(slider.min);
+      var m = parseFloat(box.value);
+      if (isNaN(m) || m < floor) { box.value = slider.max; }   // snap back on blur
+    });
+  });
+
   document.getElementById("presets").addEventListener("click", function (e) {
     var b = e.target.closest("button");
     if (!b) return;
     var p = PRESETS[b.dataset.p];
+    // lift a custom max if the preset value would exceed it, and keep the box in sync
+    [["workers", "workers-max"], ["wage", "wage-max"]].forEach(function (pair) {
+      var slider = el[pair[0]], box = document.getElementById(pair[1]);
+      if (p[pair[0]] > parseFloat(slider.max)) { slider.max = p[pair[0]]; box.value = p[pair[0]]; }
+    });
     ids.forEach(function (k) { el[k].value = p[k]; });
     render();
   });
