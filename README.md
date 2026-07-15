@@ -8,7 +8,7 @@
 
 > **Note**: I am also probably wrong about some stuff.  This is a living document and is why I am hosting this as a README in Github.
 
-> **TL;DR**: It's long. I spent real time on the technical section and I think it's worth your while, but here's the argument in five points:
+> **TL;DR**: It's long, but here's the argument in five points:
 >
 > 1. **An LLM is a single stateless function**: It takes a sequence of tokens and returns the next one, probabilistically,
 >     based entirely on that sequence.  All the state lives in a finite context window, not the
@@ -160,11 +160,11 @@ This mitigation strategy gave rise to both Chain-of-Thought (CoT) reasoning and 
 At a high level, CoT and agents are cut from the exact same architectural cloth. Both are state machines that use the
 rolling context window as their current operational state at each step.
 
-It is hard to overstate this point: much of the impressive AI breakthroughs we have witnessed over the last few
-years have not been driven by a radical revolution in the underlying foundational models. The core next-token prediction
-math remains identical. Instead, the real engineering leap has been in the design of these wrapper state machines built
-*on top* of the models—finding clever ways to let the function iteratively interact with itself or its environment to
-eke out better results.
+I hope something is clear now. Much of the impressive AI breakthroughs we have witnessed over the last few years have
+not been driven by a radical revolution in the underlying foundational models. The core next-token prediction math
+remains identical. Instead, the real engineering leap has been in the design of these wrapper state machines built *on
+top* of the models—finding clever ways to let the function iteratively interact with itself or its environment to eke
+out better results.
 
 ### Chain-of-Thought
 
@@ -223,7 +223,7 @@ with the genius. There is a dangerous, pervasive assumption in Silicon Valley th
 to "perfection," completely ignoring the reality that a statistical mirror can be no better than the data it is
 reflecting.
 
-This brings us to the industry's favorite new narrative: the claim that humans are transitioning from "creators" to "
+This brings us to the industry's favorite new narrative, which is the claim that humans are transitioning from "creators" to "
 reviewers." I agree to a certain extent, seeing I spend far more time reviewing generated output today than I did a year
 ago. But this narrative ignores basic human psychology. Human nature dictates that we will always take the path of least
 resistance. Engineers will get tired of auditing endless lines of probabilistic code, rubber-stamp the outputs, or
@@ -244,28 +244,28 @@ limitations.
 
 ## The Bull Cases: What Would Have to Be True
 
-So far we've established the technology's shape: chain-of-thought and agentic loops layered on top of a stateless,
+So far we've established that the main technology is chain-of-thought and agentic loops layered on top of a stateless,
 probabilistic next-token predictor, where errors compound and increase token cost. The question this section takes up is
-economic rather than technical: the industry is committing on the order of a trillion dollars a year to infrastructure,
-and we want to reason about what would have to be true for that build-out to pay off. I do not want to predict the
-future. I want to lay out the bull cases honestly and see how a few outcomes measures up against the
-capital already committed.
+that the industry is committing on the order of a trillion dollars a year to infrastructure, and we want to reason about
+what would have to be true for that build-out to pay off. I do not want to predict the future. I want to lay out the
+bull cases honestly and see how a few outcomes measures up against the capital already committed.
 
 ### Messaging that Might Contradict the Committed Capex
 
 First, before we go into the weeds on possible outcomes, it is important to highlight the current state of the AI boom
 against the messaging used to justify the current capex. Recently, the big AI labs have shifted their messaging from
-scaring the public with claims of AGI and human replacement to providing copilots/assisents with a human-in-the-loop.
-The build-out is sized for a claim the sellers themselves have stopped making: we are on a path to AGI and it needs mo'
-compute. There are many possible reasons the messaging has changed. For example, this could be a marketing pivot due to
-poor public opinion or the leaders realize the limitations and have decided to finally come clean. It is odd that such a
-huge shift in messaging isn't affecting the build-out. Anyway, I have no real argument to make on this messaging, I just
-thought it would be interesting to mention it and will not mention it again.
+scaring the public with claims of AGI and human replacement to providing copilots/assistants with a human-in-the-loop.
+The build-out is sized for a claim that we are on a path to AGI, which needs mo' compute. There are many possible
+reasons the messaging has changed. For example, this could be a marketing pivot due to poor public opinion (people don't
+like when you take their jobs) or the leaders realize the limitations and have decided to finally come clean. It is odd
+that such a huge shift in messaging isn't affecting the build-out. Anyway, I'd rather not focus on why the messaging
+changed and why it has not affected the capex spend. I just thought it would be interesting to mention it and will not
+mention it again.
 
 ### A Number We Won't Pretend to Resolve
 
 Much of the AI-related headlines highlight the capex the hyperscalers and frontier labs are committing to. Capital
-expenditure is a number each company reports on its own audited statements: the four largest hyperscalers guided to
+expenditure is a number each company reports on its own audited statements.  For example, the four largest hyperscalers guided to
 roughly \$700B in combined 2026 capex, nearly double their 2025
 spend ([CNBC](https://www.cnbc.com/2026/02/06/google-microsoft-meta-amazon-ai-cash.html)) and Goldman Sachs estimates a
 cumulative ~$5.3T across the Big Four from
@@ -274,7 +274,7 @@ That is a lot of cheddar!
 
 The revenue that is supposed to justify that spend is, well, a bit sketchy, and very hard to tease apart from the outside.
 Consider a single transaction. When a company uses Anthropic's models through AWS Bedrock, that one stream of dollars is
-claimed, in part, by more than one firm's reporting: Anthropic books cloud-reseller sales on a gross basis, counting
+claimed, in part, by more than one firm's reporting.  Anthropic books cloud-reseller sales on a gross basis, counting
 the full end-customer spend as revenue with AWS's cut recorded as an expense,
 while AWS also recognizes revenue on the same transaction. Widen the lens and it worsens. Amazon is at once Anthropic's
 investor, its compute provider, and its reseller.  That is, capital invested into a lab flows back out as compute spend and
@@ -287,11 +287,10 @@ more about the latest spike than about what will actually book across the year. 
 independently verifiable full-year revenue number that can be cleanly set against the capex.
 
 So I am not going to adjudicate these figures, reconcile them, or build a total out of them. I will take the committed
-capex as the one hard pole in the ground and note the more telling fact on the other side of it: **that much capital is
-being committed against a revenue base no one outside these companies can actually measure.** I am not the first to
-flag the gap. Sequoia's David Cahn put the annual distance between AI infrastructure spend and AI ecosystem revenue at
-roughly **$600B**, and Allianz Research has argued the capex-to-revenue divergence already exceeds that of the 2001
-telecom
+capex as a stake in the ground and note that **the capital is being committed against a revenue base no one outside
+these companies can actually measure.** I am not the first to flag the gap. Sequoia's David Cahn put the annual distance
+between AI infrastructure spend and AI ecosystem revenue at roughly **$600B**, and Allianz Research has argued the
+capex-to-revenue divergence already exceeds that of the 2001 telecom
 build-out ([Forbes](https://www.forbes.com/sites/jasonkirsch/2026/06/02/the-ai-capex-to-revenue-gap-is-widening---and-markets-are-starting-to-notice/)).
 
 For the cases that follow, the capex is the fixed quantity and demand is the open question. Rather than assert a revenue
@@ -318,9 +317,9 @@ easier to iterate with an agent that can generate hundreds of lines of code in s
 those lines in hours.
 
 Code is the killer agentic app, because it has independent, cheap, automated oracles: a compiler, a test suite, a
-linter, a runtime that crashes or doesn't. The agentic loop functions because it can iterate against a fast signal: run
-the tests, read the error, retry. Try to run the program, look at the output, retry. And so on. This is the entire
-reason agentic coding is the leading use case, and it is a property of the domain, not of the model.
+linter, a runtime that crashes or doesn't. The agentic loop functions because it can iterate against fast signals by
+running tests, reading the error and retrying. Try to run the program, look at the output, retry. And so on. This is the
+entire reason agentic coding is the leading use case, and it is a property of the domain, not of the model.
 
 > Sidebar on Verification: Complete verification is possible in theory but never complete in practice. Its incompleteness is
 > precisely where a probabilistic generator's errors hide. Tests verify the paths you and the agent thought to test.
@@ -329,11 +328,13 @@ reason agentic coding is the leading use case, and it is a property of the domai
 > intent lives in the human.
 
 Let's assume universal adoption within software development and assume a \$18k/engineer/year cap, which is the cap Uber
-announced.  Given the median wage [cite] of a software developer in the US is \$133k, this accounts for roughly 13.5% of
-wages in tokens. This works out to:
+announced in [Bloomberg](https://techcrunch.com/2026/06/02/uber-caps-employee-ai-spending-after-blowing-through-budget-in-four-months).
+Given the median wage of
+a [software developer](https://www.bls.gov/ooh/computer-and-information-technology/software-developers.htm) in the US is
+\$133k, this accounts for roughly 13.5% of wages in tokens. This works out to:
 
 ```
-1,700,000 × 1.00 × $18,000 = $30.6B / year
+1,895,000 × $18,000 = $34.1B / year
 ```
 
 Assuming universal adoption at the highest price a big tech, AI-forward company is willing to pay, is about $30B a year.
@@ -342,7 +343,7 @@ it. Software alone cannot justify the build-out. We need a bigger slice of the l
 
 ### Case 2: White-Collar Replacement
 
-A market size of `\$30.6B/year` is huge, but doesn't justify the capex. To justify the build-out, we need to disrupt a
+A market size of `$30.6B/year` is huge, but doesn't justify the capex. To justify the build-out, we need to disrupt a
 larger part of the labor market. One way to do this would be to expand from software development to all white-collar
 work.  Let's go crazy and even assume a large fraction of jobs can be replaced by AI agents.
 
@@ -351,15 +352,15 @@ Replacement revenue = (jobs automated) × (wage) × (agent price as fraction of 
 ```
 
 Let's plug in some numbers to help us reason about a potential market size before exploring the reliability needed to
-replace workers with agents.  At total automation of the professional class, 25% of wage (your 
-107k-job):
+replace workers with agents. At total automation of the professional class, 25% of wage, where the median for management/professional roles is
+about [$85k/year](https://www.bls.gov/news.release/wkyeng.htm) and there are a combined 70M workers across all white collar occupations:
 
 ```
-70,000,000 × $100,000 × 0.25 = $1.75T / year
+70,000,000 × $85,540 × 0.25 = $1.5T / year
 ```
 
-This easily clears the line and justifies the capex. A few high-level hurdles exist preventing us from replacing white-collar workers
-with agents: reliability and intent.  We will cover additional limitations that also apply in the replacement case when discussing
+This easily clears the line and justifies the capex. There are a few high-level hurdles exist preventing us from replacing white-collar workers
+with agents. These hurdles are reliability and intent.  We will cover additional limitations that also apply in the replacement case when discussing
 white-collar augmentation below.
 
 1. **The Reliability Math**: An agent making $N$ sequential model calls, each with independent failure probability $p$,
@@ -383,8 +384,8 @@ load-bearing, and both are exactly the limitations the first half of this essay 
 
 ### Case 3: White-Collar Augmentation
 
-Ok, so complete replacement of white-collar work seems unlikely, let's reason though a middle ground: white-collar
-augmentation.
+Ok, so complete replacement of white-collar work seems unlikely, let's reason though a middle ground that fits the
+latest messaging from the AI companies. Let's look at white-collar augmentation.
 
 There are roughly 70M white-collar jobs in the US, with average wages of \$107k/year.  Let's assume a similar token spend
 as software development to get:
@@ -397,17 +398,18 @@ This means if every one of the 70M American professionals gets 1/10th of their s
 capex line.  While promising, let me explain why this outcome is not likely.
 
 1. **Verification asymmetry**: In software, review is cheaper than writing. In most knowledge work, it isn't. A memo, a
-   brief, a financial model, a diagnosis, a strategy deck have no compiler, no test suite, no runtime. Verification cost
-   approaches production cost: to check whether the brief is right, a competent human must essentially do the reasoning
-   again. Augmentation's value collapses toward zero for exactly the tasks where the human cannot shortcut review.
+   brief, a financial model, a diagnosis, a strategy deck have no compiler, no test suite, no runtime. When you don't
+   have reliable, automated review, verification cost approaches production cost. To check whether the brief is right, a
+   competent human must essentially do the reasoning again. Augmentation's value collapses toward zero for exactly the
+   tasks where the human cannot shortcut review.
 2. **Token usage asymmetry**:  Coding agents iterate against a fast, free oracle. That loop is what makes them work.
    Knowledge work has no fast oracle.  In this case, the agent either loops without signal or terminates
    early and hands a plausible artifact to a human who must fully verify it. You get the token cost of agentic reasoning
    without the reliability benefit of the feedback loop.
 3. **Context asymmetry**:  A repository is bounded, retrievable, textual. The context required to write a good strategy
-   memo includes the last three offsites, the CEO's temperament, the client's unstated politics, and the thing everyone
+   memo includes the last three off sites, the CEO's temperament, the client's unstated politics, and the thing everyone
    knows but nobody wrote. That context is in no corpus and cannot be paged into a context window, because it was never
-   externalized. The statelessness argument bites hardest here: the model has no memory, and the state that matters was
+   externalized. The statelessness argument bites hardest here, since the model has no memory, and the state that matters was
    never written down to begin with.
 4. **Adoption asymmetry**: Developers self-serve and adopt bottom-up. Enterprise white-collar adoption is procurement,
    compliance, training, and workflow redesign. Universal adoption at 10% of wages assumes an adoption curve no
@@ -433,22 +435,25 @@ context, not the weights. This means that moving a workload from one provider to
 a migration. If the durable engineering advantage is in the wrapper and not the model, then the model underneath is a
 commodity bought on price. And commodities get bid toward marginal cost.
 
-This is the contradiction at the center of the replacement case: the build-out needs agents cheap enough to displace a
+This is the contradiction at the center of the replacement case.  That is, the build-out needs agents cheap enough to displace a
 worker and expensive enough to stay pricey while doing it. Cheap agents mean mass replacement and thin revenue.
 Expensive agents mean fat revenue and slow replacement.
 
 ### The Demand Splits
 
-Every case above granted the build-out its best possible routing: that all of this demand lands on hosted, closed,
+Every case above granted the build-out its best possible routing, where all of this demand lands on hosted, closed,
 frontier models in a hyperscaler's data center. Withdraw that assumption and the picture changes.
 
 Because inference is stateless, the cheap tail of the work has nowhere it needs to stay. The high-volume, low-difficulty
 tasks, such as classification, extraction, routing, summarization, etc. run acceptably on small open-weight models.
-Furthermore, those can run on commodity hardware, on-premise, or on a laptop. The economics are not subtle: serving a
+Furthermore, those can run on commodity hardware, on-premise, or on a laptop. The economics are not subtle.  Serving a
 workload yourself, or on a cheap open-weight host, will likely undercut a frontier API once volume is steady. The moment
-switching is a config change and the small model is good enough, the long tail leaves.
+switching is a config change and the small model is good enough, the long tail leaves.  Some may argue that many companies
+are not sophisticated enough to route to different models and host their own context, which could justify using the more
+expensive off-the-shelf agentic tools from the big AI companies.  We are in the early innings, and if token cost is ultimately
+a race to the bottom, the smart layers between users and the models will show up.
 
-I am not arguing hat demand collapses, I am arguing that demand will split. The heavy, high-value agentic work, the
+I am not arguing that demand collapses, I am arguing that demand will split. The heavy, high-value agentic work, the
 complex coding and reasoning loops, concentrates in expensive centralized compute and stays there. The long tail of
 simple and routine work flees to cheap, local inference and never touches the data centers being built for it. The trillion-dollar
 build-out is sized as though all the demand grows, stays centralized, and monetizes on the capex timeline.
