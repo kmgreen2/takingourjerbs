@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
 <meta name="google-site-verification" content="-zc2RW53mYfTyAjUuQzeT0NRxtEesb3O7ZSBQ9vv7fg" />
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Find a Price That Works — The AI Capex Model</title>
 <style>
@@ -192,7 +192,7 @@
 
   <header>
     <a href="https://github.com/kmgreen2/takingourjerbs/blob/main/README.md">Essay</a>
-    <div class="eyebrow">Case 4 · Interactive model</div>
+    <div class="eyebrow">Interactive model</div>
     <h1>Find a price that works.</h1>
     <p>Every bull case for the AI build-out treats the agent's price as a free variable. It isn't. Firms only replace a worker when the agent is cheap enough to be worth the trouble — so adoption falls as price rises, and revenue is the product of two terms pulling against each other. That product has a maximum. Drag the price and watch it fall off on both sides. The question is whether the peak clears the capex.</p>
   </header>
@@ -235,7 +235,7 @@
       <div class="ctl">
         <div class="ctl-top"><label for="workers">Workers</label><output id="workers-o"></output></div>
         <input type="range" id="workers" min="1" max="90" step="1" value="70">
-        <span class="note">Size of the labor pool in play, in millions.</span>
+        <span class="note">The labor pool in play, in millions. Assumes everyone in it eventually adopts — if you think adoption is only partial, shrink this number to the share that actually would.</span>
         <div class="maxrow">max <input type="number" id="workers-max" min="1" step="1" value="90"><span class="unit">M</span></div>
       </div>
 
@@ -250,12 +250,6 @@
         <div class="ctl-top"><label for="phic">Walk-away price</label><output id="phic-o"></output></div>
         <input type="range" id="phic" min="5" max="80" step="1" value="40">
         <span class="note">The price at which the agent stops being worth the disruption and adoption goes to zero. This sets the shape of the curve.</span>
-      </div>
-
-      <div class="ctl">
-        <div class="ctl-top"><label for="ceiling">Adoption ceiling</label><output id="ceiling-o"></output></div>
-        <input type="range" id="ceiling" min="5" max="100" step="1" value="100">
-        <span class="note">The most of the pool that ever adopts, even at a price of zero. Scales the whole curve.</span>
       </div>
 
       <div class="ctl">
@@ -310,21 +304,23 @@
       <div class="math">
         <h2>What the model does</h2>
         <p>Revenue is the wage base times price times adoption, kept on frontier models by the centralization share <strong>κ</strong>. The move that matters is refusing to let price and adoption float independently — adoption is a <em>function</em> of price:</p>
-        <div class="eq">R(φ) = κ · N · w · φ · a(φ)&nbsp;&nbsp;&nbsp;where&nbsp;&nbsp;a(φ) = A · max(0, 1 − φ/φ<sub>c</sub>)</div>
-        <p>Read the pieces left to right: <strong>κ</strong> is the fraction of spend that stays centralized rather than fleeing to open weights on a laptop; <strong>N</strong> is the number of workers; <strong>w</strong> is the average wage; <strong>φ</strong> is the agent's price as a share of that wage; and <strong>a(φ)</strong> is the fraction of the pool that adopts at that price. Adoption falls linearly from its ceiling <strong>A</strong> (the most that ever adopt, even at a price near zero) to zero at the walk-away price <strong>φ<sub>c</sub></strong>, where the agent stops being worth the disruption.</p>
+        <div class="eq">R(φ) = κ · N · w · φ · a(φ)</div>
+        <p>Read the pieces left to right: <strong>κ</strong> is the fraction of spend that stays centralized rather than fleeing to open weights on a laptop; <strong>N</strong> is the number of workers; <strong>w</strong> is the average wage; <strong>φ</strong> is the agent's price as a share of that wage; and <strong>a(φ)</strong> is the fraction of the pool that adopts at that price, running from 1 when the agent is nearly free down toward 0 as price climbs. We assume <em>universal</em> adoption — everyone in the pool eventually adopts at a low enough price — which is the friendliest assumption to the build-out. If you think adoption is only partial, model it by shrinking <strong>N</strong> to the share that actually would; there's no separate adoption knob because N already carries it. That revenue equation never changes — the only thing the shape selector swaps is <strong>a(φ)</strong>:</p>
+        <div class="eq">a<sub>linear</sub>(φ) = max(0, 1 − φ/φ<sub>c</sub>)<br>a<sub>power</sub>(φ)&nbsp; = max(0, 1 − φ/φ<sub>c</sub>)<sup>1/2</sup><br>a<sub>logit</sub>(φ)&nbsp; = 1 / (1 + e<sup>&nbsp;β(φ − φ<sub>c</sub>/2)</sup>)</div>
+        <p>All three start near 1 when the agent is nearly free and fall as price rises; they differ only in <em>how</em>. <strong>Linear</strong> assumes one shared walk-away price <strong>φ<sub>c</sub></strong>, so adoption falls off a single cliff and hits zero there. <strong>Power</strong> assumes a spread of walk-away prices, which fattens the shoulder so adoption holds up through mid prices before collapsing near φ<sub>c</sub>. <strong>Logit</strong> is the standard S-curve: it falls fastest around the midpoint and never quite reaches zero, leaving a tail of high-tolerance firms that always pay. Only the linear case yields a clean closed-form peak, so we work that one by hand below; power and logit have no elementary maximum and are solved numerically — which is why the peak marker shifts when you switch shapes.</p>
 
-        <h2>Where the ceiling comes from</h2>
-        <p>The <strong>max(0, …)</strong> only exists to stop adoption going negative once the price passes φ<sub>c</sub>. Inside the live range — prices from 0 to φ<sub>c</sub>, the only part where anyone is buying — that term is already positive, so it drops away and revenue is a clean downward parabola in φ:</p>
-        <div class="eq">R(φ) = κ · A · N · w · φ · (1 − φ/φ<sub>c</sub>)&nbsp;&nbsp;&nbsp;&nbsp;for 0 ≤ φ ≤ φ<sub>c</sub>&nbsp;&nbsp;(and R = 0 beyond)</div>
-        <p>A downward parabola has a top. Bundle everything that isn't φ into a single constant C = κ·A·N·w, take the derivative, and set the slope to zero — that's the peak:</p>
+        <h2>Where the ceiling comes from (linear case)</h2>
+        <p>Take the linear curve. Its <strong>max(0, …)</strong> only exists to stop adoption going negative once the price passes φ<sub>c</sub>. Inside the live range — prices from 0 to φ<sub>c</sub>, the only part where anyone is buying — that term is already positive, so it drops away and revenue is a clean downward parabola in φ:</p>
+        <div class="eq">R(φ) = κ · N · w · φ · (1 − φ/φ<sub>c</sub>)&nbsp;&nbsp;&nbsp;&nbsp;for 0 ≤ φ ≤ φ<sub>c</sub>&nbsp;&nbsp;(and R = 0 beyond)</div>
+        <p>A downward parabola has a top. Bundle everything that isn't φ into a single constant C = κ·N·w, take the derivative, and set the slope to zero — that's the peak:</p>
         <div class="eq">dR/dφ = C · (1 − 2φ/φ<sub>c</sub>) = 0&nbsp;&nbsp;⟹&nbsp;&nbsp;φ* = φ<sub>c</sub> / 2</div>
         <p>So the best price is always <em>half</em> the walk-away price: push toward free and you earn nothing per seat; push toward φ<sub>c</sub> and nobody buys; the optimum sits dead center. Substitute φ* back in — at that price both φ and the adoption factor equal one-half — and you get a hard ceiling on what this pool can ever yield:</p>
-        <div class="eq">R<sub>max</sub> = C · (φ<sub>c</sub>/2) · (1/2) = κ · A · N · w · φ<sub>c</sub> / 4</div>
-        <p>The <strong>4</strong> is two halves multiplied: half from the optimal price being φ<sub>c</sub>/2, half from adoption sitting at its midpoint when you're there. At the best possible price you capture exactly a quarter of κ·A·N·w·φ<sub>c</sub>, and nothing does better.</p>
+        <div class="eq">R<sub>max</sub> = C · (φ<sub>c</sub>/2) · (1/2) = κ · N · w · φ<sub>c</sub> / 4</div>
+        <p>The <strong>4</strong> is two halves multiplied: half from the optimal price being φ<sub>c</sub>/2, half from adoption sitting at its midpoint when you're there. At the best possible price you capture exactly a quarter of κ·N·w·φ<sub>c</sub>, and nothing does better.</p>
 
         <h2>The assumption that matters</h2>
-        <p>That clean quarter is specific to the <em>linear</em> curve, and linear is the <strong>least</strong> generous of the three shapes — not the most. It assumes every firm shares one walk-away price, so adoption falls off a single cliff at φ<sub>c</sub>. Real firms have a spread of walk-away prices, which fattens the shoulder of the curve and lets more of them keep buying at moderate prices. The <strong>Power</strong> and <strong>Logit</strong> shapes in the selector both capture that, and both lift the peak <em>above</em> the linear quarter — neither shape makes the argument easier for the bear.</p>
-        <p>The two are generous in different ways. <strong>Power</strong> holds adoption high across low-to-mid prices, so it tends to produce the tallest peak of the three. <strong>Logit</strong> is the standard economics demand curve and the most defensible: it never hits a hard zero, so a stubborn tail of high-tolerance firms always pays something. This is why the shape selector matters more than any single slider. If you want to stress-test the argument, run it under Power and Logit, not just linear — and see whether the peak clears the capex line. If even these generous curves can't get the peak far enough ahead of the spend, the price wall was never the weak point: the ceiling is structural.</p>
+        <p>That clean quarter is specific to the <em>linear</em> curve — and linear is the <strong>least</strong> generous of the three, because its single shared walk-away price is the harshest assumption you can make. Power and Logit both spread that price out, and both lift the peak <em>above</em> the linear quarter. Neither generous shape makes the argument easier for the bear; if anything Power tends to produce the tallest peak of the three.</p>
+        <p>This is why the shape selector matters more than any single slider. If you want to stress-test the argument, don't just run linear — switch to Power and Logit, the two most bull-friendly demand curves, and watch whether the peak clears the capex line. If even these can't get the peak far enough ahead of the spend, the price wall was never the weak point: the ceiling is structural.</p>
         <p>That ceiling is the whole argument. The labs are not choosing between a good price and a bad one — they are choosing a point on a curve whose peak may already sit below the capex line, in which case <strong>no pricing strategy clears it.</strong> Not because the technology failed, but because the shape of the market forbids it. If you can find a combination of inputs — under any curve shape — that clears the line without every variable breaking favorably at once, you've found something I couldn't.</p>
       </div>
       </div>
@@ -337,16 +333,16 @@
 (function () {
   "use strict";
 
-  var ids = ["price","workers","wage","phic","ceiling","central","capex"];
+  var ids = ["price","workers","wage","phic","central","capex"];
   var el = {};
   ids.forEach(function (k) { el[k] = document.getElementById(k); el[k + "_o"] = document.getElementById(k + "-o"); });
 
   var PRESETS = {
-    essay:    { price: 12, workers: 70, wage: 107, phic: 40, ceiling: 100, central: 100, capex: 700 },
-    software: { price: 13.5, workers: 2, wage: 133, phic: 30, ceiling: 100, central: 100, capex: 700 },
-    replace:  { price: 25, workers: 70, wage: 100, phic: 50, ceiling: 100, central: 100, capex: 700 },
-    augment:  { price: 10, workers: 70, wage: 100, phic: 40, ceiling: 100, central: 100, capex: 700 },
-    bull:     { price: 20, workers: 90, wage: 150, phic: 60, ceiling: 100, central: 100, capex: 700 }
+    essay:    { price: 12, workers: 70, wage: 107, phic: 40, central: 100, capex: 700 },
+    software: { price: 13.5, workers: 2, wage: 133, phic: 30, central: 100, capex: 700 },
+    replace:  { price: 25, workers: 70, wage: 100, phic: 50, central: 100, capex: 700 },
+    augment:  { price: 10, workers: 70, wage: 100, phic: 40, central: 100, capex: 700 },
+    bull:     { price: 20, workers: 90, wage: 150, phic: 60, central: 100, capex: 700 }
   };
 
   var shape = "linear";
@@ -376,26 +372,27 @@
     return v;
   }
 
-  // adoption fraction (0..A) at a given price fraction, by shape
-  function adoption(phi, phic, A) {
+  // adoption fraction (0..1) at a given price fraction, by shape.
+  // universal ceiling assumed (A = 1); partial adoption is modeled by shrinking N.
+  function adoption(phi, phic) {
     if (shape === "power") {
       // spread of walk-away prices -> fatter shoulder, still zero at phic
-      return phi >= phic ? 0 : A * Math.pow(1 - phi / phic, 0.5);
+      return phi >= phic ? 0 : Math.pow(1 - phi / phic, 0.5);
     }
     if (shape === "logit") {
       // S-curve: half-drop at midpoint phic/2, soft tail (never hard zero)
       var mid = phic / 2;
       var beta = 9 / phic;            // slope scaled to phic so curves stay comparable
-      return A / (1 + Math.exp(beta * (phi - mid)));
+      return 1 / (1 + Math.exp(beta * (phi - mid)));
     }
     // linear (default): single shared walk-away price
-    return Math.max(0, 1 - phi / phic) * A;
+    return Math.max(0, 1 - phi / phic);
   }
 
   // R in $B, given price as a percent
   function revenue(pct, v) {
     var phi = pct / 100, phic = v.phic / 100;
-    var adopt = adoption(phi, phic, v.ceiling / 100);
+    var adopt = adoption(phi, phic);
     var base = v.workers * 1e6 * v.wage * 1e3;    // dollars
     return base * phi * adopt * (v.central / 100) / 1e9;
   }
@@ -419,7 +416,6 @@
     el.workers_o.value = v.workers + "M";
     el.wage_o.value   = "$" + v.wage + "k";
     el.phic_o.value   = v.phic + "% of wage";
-    el.ceiling_o.value = v.ceiling + "%";
     el.central_o.value = v.central + "%";
     el.capex_o.value  = money(v.capex) + "/yr";
 
@@ -494,7 +490,7 @@
     var line;
     if (clears) {
       line = 'At best, this pool earns <b>' + money(rPeak) + '/yr</b> — priced at ' + peakPct.toFixed(1) +
-             '% of wage, with ' + v.ceiling + '% of ' + v.workers + 'M workers adopting and ' + v.central +
+             '% of wage, with all ' + v.workers + 'M workers adopting and ' + v.central +
              '% of spend staying centralized. That <span class="gap clears">clears ' + money(v.capex) +
              '</span> by ' + money(gap) + '. Now ask yourself whether you believe every one of those numbers at once.';
     } else {
