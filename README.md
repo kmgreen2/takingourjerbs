@@ -233,6 +233,11 @@ out in a corporate setting.  Pressure to do more with AI coupled with the surfac
 likely lead to less oversight.  Sure in an ideal world, engineers will completely switch their workload to be more reviewer
 than creator, but we are already seeing pressure to produce more, which likely means spending less time reviewing.
 
+This systemic rubber-stamping can create a massive downstream "model collapse."  When lazy teams commit plausible but
+subtly buggy generated code and unverified documentation directly to internal repositories and wikis, they contaminate
+the enterprise's context. Within a couple of iteration cycles, the next generation of models is fine-tuned or RAG-ing on
+the previous model's synthetic garbage, locking the organization into a self-degrading, error-propagating feedback loop.
+
 Ok, enough of this tangential rant.  Let's try to reason about the potential outcomes in light of the underlying technological
 limitations.
 
@@ -366,10 +371,12 @@ white-collar augmentation below.
 1. **The Reliability Math**: An agent making $N$ sequential model calls, each with independent failure probability $p$,
    succeeds at roughly $(1−p)^N$. For example, if we assume that a model provides the correct answer 99% of the time,
    given its current context, then we can expect a 25-step task is correct 78% of the time, a 50-step task is correct
-   60% of the time and a 100-step task is correct about 38% of the time. Keep in mind, errors in intermediate steps can
-   compound, since each step generally updates the context. The $(1-p)^N$ expression assumes the probability of
-   succeeding at each step is independent. In reality, the success probability at each step is dependent on how previous steps
-   modified the context. I will avoid getting into the weeds, but thought it was worth pointing out.
+   60% of the time and a 100-step task is correct about 38% of the time. In reality, the success probability at each step is 
+   highly dependent on how previous steps modified the context. Because this is a rolling state machine, an error at step 2 
+   isn't an isolated failure.  The error injects noise into the input vector for the rest of the run. This "context pollution" or 
+   "state drift" causes the reliability of the system to decay, forcing the model to reason against its own 
+   compounding hallucinations. I will avoid getting into the weeds, but thought it was worth pointing out.
+
 2. **Intent**: Replacement doesn't merely require reliable execution. It requires **eliminating the human who supplies
    intent.** Every system in this essay is a function from context to tokens.  The context comes from a person who
    wants something. Full replacement means the objective itself must be generated *inside* the loop.
@@ -399,9 +406,12 @@ capex line.  While promising, let me explain why this outcome is not likely.
 
 1. **Verification asymmetry**: In software, review is cheaper than writing. In most knowledge work, it isn't. A memo, a
    brief, a financial model, a diagnosis, a strategy deck have no compiler, no test suite, no runtime. When you don't
-   have reliable, automated review, verification cost approaches production cost. To check whether the brief is right, a
-   competent human must essentially do the reasoning again. Augmentation's value collapses toward zero for exactly the
-   tasks where the human cannot shortcut review.
+   have reliable, automated review, verification cost approaches production cost. When verification cost matches or 
+   exceeds original production cost, the economic surplus of automation collapses to zero. Instead of saving labor, 
+   you merely shift the human's role from a high-leverage "creator" to an exhausted, low-leverage "auditor." This 
+   verification bottleneck is potential economic drag of agentic systems.  This reality is formally modeled in a [2026 MIT 
+   paper](https://arxiv.org/abs/2602.20946), which outlines how biologically bottlenecked human verification bandwidth 
+   caps the ultimate value of cheap machine execution.
 2. **Token usage asymmetry**:  Coding agents iterate against a fast, free oracle. That loop is what makes them work.
    Knowledge work has no fast oracle.  In this case, the agent either loops without signal or terminates
    early and hands a plausible artifact to a human who must fully verify it. You get the token cost of agentic reasoning
@@ -434,6 +444,12 @@ But every force in this essay pushes it down. The base model is a stateless func
 context, not the weights. This means that moving a workload from one provider to another is a configuration change, not
 a migration. If the durable engineering advantage is in the wrapper and not the model, then the model underneath is a
 commodity bought on price. And commodities get bid toward marginal cost.
+
+The hyperscalers know this. They realize weights aren't a moat, which is why they are aggressively trying to build a
+physical, real-world utility moat. By locking up power grid capacity, nuclear energy contracts, fiber lines, and custom
+silicon pipelines, they hope to construct high-barrier tollbooths. But this turns the AI boom from a high-margin
+software play into a highly capital-intensive, slow-depreciation utility bet. This is not exactly the venture-scale
+dream being priced in.
 
 This is the contradiction at the center of the replacement case.  That is, the build-out needs agents cheap enough to displace a
 worker and expensive enough to stay pricey while doing it. Cheap agents mean mass replacement and thin revenue.
