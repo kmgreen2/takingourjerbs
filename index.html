@@ -43,6 +43,13 @@
   header p { margin: 0; max-width: 62ch; color: var(--muted); font-size: 14px; }
   header a { color: var(--ink); }
 
+  .disclaimer {
+    border: 1px solid var(--rule); background: var(--panel);
+    padding: 11px 14px; margin-bottom: 20px;
+    font-size: 12px; line-height: 1.5; color: var(--muted);
+  }
+  .disclaimer b { color: var(--ink); font-weight: 600; }
+
   /* ---- verdict ---- */
   .verdict {
     border: 2px solid var(--ink); background: var(--panel);
@@ -205,6 +212,10 @@
 <body>
 <div class="wrap">
 
+  <div class="disclaimer">
+    <b>Heads up:</b> this website was vibe-coded — built by iterating with an AI agent rather than hand-written line by line. The essay it accompanies was not; that's all mine. Treat this tool as a back-of-the-envelope model for playing with the numbers, not a precision instrument.
+  </div>
+
   <header>
     <a href="https://github.com/kmgreen2/takingourjerbs/blob/main/README.md">Essay</a>
     <div class="eyebrow">Interactive model</div>
@@ -222,7 +233,6 @@
     <div class="panel">
       <h2>Presets</h2>
       <div class="presets" id="presets">
-        <button data-p="essay">Essay defaults</button>
         <button data-p="software">Case 1 · Software</button>
         <button data-p="replace">Case 2 · Replacement</button>
         <button data-p="augment">Case 3 · Augmentation</button>
@@ -353,7 +363,6 @@
   ids.forEach(function (k) { el[k] = document.getElementById(k); el[k + "_o"] = document.getElementById(k + "-o"); });
 
   var PRESETS = {
-    essay:    { workers: 70, wage: 107, phic: 40, central: 100, capex: 700 },
     software: { workers: 2, wage: 133, phic: 30, central: 100, capex: 700 },
     replace:  { workers: 70, wage: 85.5, phic: 50, central: 100, capex: 700 },
     augment:  { workers: 70, wage: 85.5, phic: 40, central: 100, capex: 700 },
