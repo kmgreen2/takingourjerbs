@@ -204,6 +204,13 @@
   .math strong { color: var(--ink); font-weight: 600; }
   .math a { color: var(--ink); }
 
+  /* inline ascii curve glyph next to each shape formula */
+  .sk {
+    display: inline-block; width: 3ch; text-align: center;
+    color: var(--curve); letter-spacing: -1px;
+    margin-right: 8px; user-select: none;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .curve-path, .capex-line, .peak-dot, .peak-stem { transition: d .18s ease, cy .18s ease, cx .18s ease, y1 .18s ease, y2 .18s ease; }
   }
@@ -331,7 +338,11 @@
         <p>Revenue is the wage base times price times adoption, kept on frontier models by the centralization share <strong>κ</strong>. The move that matters is refusing to let price and adoption float independently — adoption is a <em>function</em> of price:</p>
         <div class="eq">R(φ) = κ · N · w · φ · a(φ)</div>
         <p>Read the pieces left to right: <strong>κ</strong> is the fraction of spend that stays centralized rather than fleeing to open weights on a laptop; <strong>N</strong> is the number of workers; <strong>w</strong> is the average wage; <strong>φ</strong> is the agent's price as a share of that wage; and <strong>a(φ)</strong> is the fraction of the pool that adopts at that price, running from 1 when the agent is nearly free down toward 0 as price climbs. We assume <em>universal</em> adoption — everyone in the pool eventually adopts at a low enough price — which is the friendliest assumption to the build-out. If you think adoption is only partial, model it by shrinking <strong>N</strong> to the share that actually would; there's no separate adoption knob because N already carries it. That revenue equation never changes — the only thing the shape selector swaps is <strong>a(φ)</strong>:</p>
-        <div class="eq">a<sub>linear</sub>(φ) = max(0, 1 − φ/φ<sub>c</sub>)<br>a<sub>power</sub>(φ)&nbsp; = max(0, 1 − φ/φ<sub>c</sub>)<sup>1/2</sup><br>a<sub>logit</sub>(φ)&nbsp; = 1 / (1 + e<sup>&nbsp;β(φ − φ<sub>c</sub>/2)</sup>)</div>
+        <div class="eq">
+          <span class="sk">╲</span> a<sub>linear</sub>(φ) = max(0, 1 − φ/φ<sub>c</sub>)<br>
+          <span class="sk">▔▔╲</span> a<sub>power</sub>(φ)&nbsp; = max(0, 1 − φ/φ<sub>c</sub>)<sup>1/2</sup><br>
+          <span class="sk">▔╲▁</span> a<sub>logit</sub>(φ)&nbsp; = 1 / (1 + e<sup>&nbsp;β(φ − φ<sub>c</sub>/2)</sup>)
+        </div>
         <p>All three start near 1 when the agent is nearly free and fall as price rises; they differ only in <em>how</em>. <strong>Linear</strong> assumes one shared walk-away price <strong>φ<sub>c</sub></strong>, so adoption falls off a single cliff and hits zero there. <strong>Power</strong> assumes a spread of walk-away prices, which fattens the shoulder so adoption holds up through mid prices before collapsing near φ<sub>c</sub>. <strong>Logit</strong> is the standard S-curve: it falls fastest around the midpoint and never quite reaches zero, leaving a tail of high-tolerance firms that always pay. Only the linear case yields a clean closed-form peak, so we work that one by hand below; power and logit have no elementary maximum and are solved numerically — which is why the peak marker shifts when you switch shapes.</p>
 
         <h2>Where the ceiling comes from (linear case)</h2>
