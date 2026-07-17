@@ -4,7 +4,8 @@
 > There are concepts (e.g., cross-entropy loss and backpropagation), optimizations (e.g., the use of batching and the KV
 > Cache), and mathematical details (e.g., the output of a model evaluation is a probability distribution, not a token)
 > that I am leaving out for simplicity. I feel that digging too much into these details will take away from presenting the
-> conceptual reality.
+> conceptual reality.  If you feel the need to "well actually" some minor technical detail, this
+> isn't for you.  On the other hand, if you think something is conceptually wrong, I will verify, fix and update the text.
 
 > **Note**: I am also probably wrong about some stuff.  This is a living document and is why I am hosting this as a README in Github.
 
