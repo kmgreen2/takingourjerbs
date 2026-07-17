@@ -163,9 +163,9 @@ At a high level, CoT and agents are cut from the exact same architectural cloth.
 rolling context window as their current operational state at each step.
 
 I hope something is clear now. Much of the impressive AI breakthroughs we have witnessed over the last few years have
-not been driven by a change in the underlying mechanism. The core next-token prediction remains the identical. The key
+not been driven by a change in the underlying mechanism. The core next-token prediction remains identical. The key
 is that the weights have been trained, via reinforcement training (RL), to drive agentic loops, which allows the models to
-self-reason and call external tools when they see fit. The engineering leap has been in the state machines build on top
+self-reason and call external tools when they see fit. The engineering leap has been in the state machines built on top
 of them and retraining the underlying model to operate as part of the state machine.
 
 ### Chain-of-Thought
@@ -258,6 +258,20 @@ probabilistic next-token predictor, where errors compound and increase token cos
 that the industry is committing on the order of a trillion dollars a year to infrastructure, and we want to reason about
 what would have to be true for that build-out to pay off. I do not want to predict the future. I want to lay out the
 bull cases honestly and see how a few outcomes measures up against the capital already committed.
+
+### A Quick Note on the Global Market
+
+Before we run the numbers, you might notice that the cases below rely entirely on US labor statistics and US wages. Why
+ignore the rest of the world?  First, the math of capital expenditure demands it.  You do not pay off a
+multi-trillion-dollar infrastructure bill by automating a $15,000-a-year junior analyst in an emerging market.  The
+hyperscalers are writing these capex checks on the assumption that they can capture the massive US wage premium.  If the
+data centers can't justify their cost against the highest-margin labor pool on the planet, the global market won't save
+them.  Second, assuming the US hyperscalers will just seamlessly absorb the global knowledge-work pipeline ignores
+geopolitical gravity.  Governments and enterprises across Europe, Asia, and the Middle East are actively funding "Sovereign AI"
+initiatives specifically to avoid routing their national and corporate data through closed, US-owned
+models. A massive chunk of global demand is geopolitically mandated to flee to open-weight, localized infrastructure.
+If you really feel the need to assume the US-based hyperscalers are going to single-handedly disrupt the global labor market,
+go ahead and model it [at the site](https://kmgreen2.github.io/takingourjerbs/).
 
 ### Messaging that Might Contradict the Committed Capex
 
