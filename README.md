@@ -62,7 +62,7 @@ chopped into one or more numeric pieces. These tokens are then mapped to numbers
 using a process as embedding. For clarity and simplicity, we will ignore the distinction between tokens and words
 throughout our examples.
 
-Anyway, think of the LLM as a function $f(x)that takes a sequence of tokens $xand returns a single next token, $y$,
+Anyway, think of the LLM as a function $f(x)$ that takes a sequence of tokens $x$ and returns a single next token, $y$,
 that is probabilistically chosen based entirely on that preceding sequence. The model is trained by iteratively updating
 its internal weights using text. In a single training step, we take a sequence of text, remove the very last token to
 create an incomplete sequence ($x'$), and then compute $f(x') \rightarrow y$.
@@ -78,11 +78,11 @@ basically produces magic.  The foundation of even the most advanced modern model
 > * **Model Prediction ($y$):** "coop"
 >
 >
-> The internal weights are updated based on the $error(\text{"road"}, \text{"coop"})to "teach" the function the statistically correct word in this specific context.
+> The internal weights are updated based on the $error(\text{"road"}, \text{"coop"})$ to "teach" the function the statistically correct word in this specific context.
 
 ### Context Windows
 
-The **context window** is the hard limit on the maximum size of the input sequence, $x$, that can be fed into $f(x)at
+The **context window** is the hard limit on the maximum size of the input sequence, $x$, that can be fed into $f(x)$ at
 any one time. Modern frontier models have context windows spanning anywhere from hundreds of thousands to multiple
 millions of tokens.
 
@@ -101,14 +101,14 @@ workaround, exceeding the window means losing fidelity.
 We started with GPT-like chatbots that were used to have turn-based interactions between a person and an LLM. In fact,
 this is how most people still interact with LLMs. Here is how turn-based interactions work. A human sends a question,
 statement, rant or whatever to the LLM. This is tokenized into $x$. A process will generate a new token using $f(x)$,
-appending the resulting token to the sequence at each step. The updated sequence is fed into $f(x)at each step. The
+appending the resulting token to the sequence at each step. The updated sequence is fed into $f(x)$ at each step. The
 process stops when the resulting token is a special `STOP` token. The result is decoded from tokens into words in the
 original language and sent to the user. Since this is an iterative process, we can stream token-by-token back to the
 user.
 
 Each turn results in the sequence getting larger and larger. For example, assume an initial query, $x_0$, and initial
-response $r_0$. The second turn from the human will send $concat(x_0, r_0, x_1)to the LLM, which will result in $r_1$.
-The third turn will send $concat(x_0, r_0, x_1, r_1, x_2)and so on. If the concatenation exceeds the context window,
+response $r_0$. The second turn from the human will send $concat(x_0, r_0, x_1)$ to the LLM, which will result in $r_1$.
+The third turn will send $concat(x_0, r_0, x_1, r_1, x_2)$ and so on. If the concatenation exceeds the context window,
 the backing system can either return an error or it can try to compact the sequence potentially pissing the user off as
 we discuss above.
 
@@ -118,7 +118,7 @@ we discuss above.
 > * **Human Response:** "That is a dumb joke"
 > * **LLM Response:** "You hit the nail on the head and are so right!"
 >
-> Final evaluation: $f($`"<human>Tell me a joke</human><ai>Why did the chicken cross the road?</ai><human>That is a dumb joke</human>"` $) \rightarrow"You hit the nail on the head and are so right!"
+> Final evaluation: $f($`<human>`Tell me a joke`</human><ai>`Why did the chicken cross the road?`</ai><human>`That is a dumb joke`</human>`"}$)$ $\rightarrow$ "You hit the nail on the head and are so right!"
 >
 
 I hope this example shatters any anthropomorphic illusion you may have about LLMs. There is no memory in the traditional
@@ -133,7 +133,7 @@ with each other!?!?!
 > * **Person 8 (Hannah):** "Hi everyone, I’m Bob. And I’m Alice. And I’m Charlie. [...six lines of repetition omitted for sanity...]. And I’m Hannah. The server is down."
 >
 >
-> Final evaluation required just to hear from Hannah: $concat(\text{Bob}, \text{Alice}, \text{Charlie}, \text{Dave}, \text{Ellen}, \text{Frank}, \text{Grace}) \rightarrow"The server is down."
+> Final evaluation required just to hear from Hannah: $concat(\text{Bob}, \text{Alice}, \text{Charlie}, \text{Dave}, \text{Ellen}, \text{Frank}, \text{Grace}) \rightarrow$ "The server is down."
 
 ### The Scaling Laws
 
@@ -170,9 +170,9 @@ of them and retraining the underlying model to operate as part of the state mach
 
 ### Chain-of-Thought
 
-Ok, let's talk about chain-of-thought. Instead of taking the human query $xand immediately generating the first token
-of the visible response $r_0$, the model leverages $f(x)to iterate with itself in a hidden scratchpad. It generates a
-long sequence of internal "thinking" tokens, appending each back into $f(x)exactly like turn-based chat, but is
+Ok, let's talk about chain-of-thought. Instead of taking the human query $x$ and immediately generating the first token
+of the visible response $r_0$, the model leverages $f(x)$ to iterate with itself in a hidden scratchpad. It generates a
+long sequence of internal "thinking" tokens, appending each back into $f(x)$ exactly like turn-based chat, but is
 typically obscured from the user. This internal loop allows the model to map out logic, evaluate intermediate
 mathematical steps, and catch its own errors entirely within its own weights before committing to a visible answer. Only
 when the model decides this internal process is complete does it transition to generating the final response sequence
@@ -194,7 +194,7 @@ getting rid of older tokens in the sequence. Think of the context window as the 
 methods of discovery or access to the agent's long-term memory.
 
 The main difference between CoT and agentic loops is that, in CoT, the state is updated using only direct results from
-$f(x)(i.e. model weights), while agents update state using both $f(x)and external data via tool calls. This allows agents
+$f(x)$ (i.e. model weights), while agents update state using both $f(x)$ and external data via tool calls. This allows agents
 to access long-term memory and fetch up-to-date information via API calls, etc.
 
 While I make a distinction between CoT and agents, note that modern models often interleave tool calls with reasoning,
@@ -277,7 +277,7 @@ Much of the AI-related headlines highlight the capex the hyperscalers and fronti
 expenditure is a number each company reports on its own audited statements.  For example, the four largest hyperscalers guided to
 roughly \$700B in combined 2026 capex, nearly double their 2025
 spend ([CNBC](https://www.cnbc.com/2026/02/06/google-microsoft-meta-amazon-ai-cash.html)) and Goldman Sachs estimates a
-cumulative ~$5.3T across the Big Four from
+cumulative ~\$5.3T across the Big Four from
 FY2025–FY2030 ([Yahoo Finance](https://finance.yahoo.com/sectors/technology/article/meta-microsoft-amazon-and-alphabet-are-about-to-spend-a-shocking-amount-of-money-to-dominate-the-ai-era-115359575.html)).
 That is a lot of cheddar!
 
@@ -298,7 +298,7 @@ independently verifiable full-year revenue number that can be cleanly set agains
 So I am not going to adjudicate these figures, reconcile them, or build a total out of them. I will take the committed
 capex as a stake in the ground and note that **the capital is being committed against a revenue base no one outside
 these companies can actually measure.** I am not the first to flag the gap. Sequoia's David Cahn put the annual distance
-between AI infrastructure spend and AI ecosystem revenue at roughly **$600B**, and Allianz Research has argued the
+between AI infrastructure spend and AI ecosystem revenue at roughly **\$600B**, and Allianz Research has argued the
 capex-to-revenue divergence already exceeds that of the 2001 telecom
 build-out ([Forbes](https://www.forbes.com/sites/jasonkirsch/2026/06/02/the-ai-capex-to-revenue-gap-is-widening---and-markets-are-starting-to-notice/)).
 
@@ -354,7 +354,7 @@ a [software developer](https://www.bls.gov/ooh/computer-and-information-technolo
 1,895,000 × $18,000 = $34.1B / year
 ```
 
-Assuming universal adoption at the highest price a big tech, AI-forward company is willing to pay, is about $34B a year.
+Assuming universal adoption at the highest price a big tech, AI-forward company is willing to pay, is about \$34B a year.
 This means even total success in the one domain where AI unambiguously works tops out near 13.5% of a wage, not 100% of
 it. Software alone cannot justify the build-out. We need a bigger slice of the labor market.
 
@@ -380,7 +380,7 @@ This easily clears the line and justifies the capex. There are a few high-level 
 with agents. These hurdles are reliability and intent.  We will cover additional limitations that also apply in the replacement case when discussing
 white-collar augmentation below.
 
-1. **The Reliability Math**: An agent making $Nsequential model calls, each with independent failure probability $p$,
+1. **The Reliability Math**: An agent making $N$ sequential model calls, each with independent failure probability $p$,
    succeeds at roughly $(1−p)^N$. For example, if we assume that a model provides the correct answer 99% of the time,
    given its current context, then we can expect a 25-step task is correct 78% of the time, a 50-step task is correct
    60% of the time and a 100-step task is correct about 38% of the time.  In reality, the success probability at each step is
