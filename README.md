@@ -12,13 +12,14 @@
 >
 > 1. **An LLM is a single stateless function**: It takes a sequence of tokens and returns the next one, probabilistically,
 >     based entirely on that sequence.  All the state lives in a finite context window, not the
->     weights. When pre-training scaling laws hit diminishing returns, the industry didn't build a smarter function, it
->     built state machines around the same function, looping it against itself.
+>     weights. When pre-training scaling laws hit diminishing returns, the industry
+>     retrained the function to effectively work as a looping node in a state machine. The capability gain is real,
+>     but it lives in the weights and only cashes out inside the loop.
 > 2. **Errors compound**: Loops compound errors.  You can backtrack to mitigate errors, which works well with a cheap deterministic oracle, but it
 >      is generally unclear how well we can mitigate compounding errors in use cases that do not have this type of verification.
 > 3. **The "killer app" has cheap automated oracles**: Code is the killer agentic app because it has a compiler, a test
 >     suite, a runtime that crashes. That's a property of the domain, not the underlying model. The industry is
->     extrapolating this success to all white-collar work, which has no such oracles.  Emails don't compile. And there's 
+>     extrapolating this success to all white-collar work, which has no such oracles.  Emails don't compile. And there's
 >      no test suite for the fact that Chad is a pain to work with.
 > 4. **Weights are not a moat**: The models are stateless, so the value is in managing the context and tools around the
 >      model.  This means switching costs are proportional to managing context, tools and routing.  This will become
@@ -26,8 +27,8 @@
 >      can decide to route on-demand based on price, domain or whatever.
 > 5. **The build-out is priced as though 1-4 are not true**: A trillion dollars a year only pays back if agents get
 >     reliable enough to displace workers wholesale.  This also assumes that demand lands on hosted frontier models, and it
->     does so inside the depreciation window. (2) says reliability has an architectural ceiling outside domains with
->     cheap verification, and (3) says most white-collar work cannot be cheaply verified.  (4), the cheap, high-volume tail
+>     does so inside the depreciation window. (2) reliability stays capped outside domains with cheap verification,
+>     and (3) says most white-collar work cannot be cheaply verified.  In (4), the cheap, high-volume tail
 >     of whatever demand does materialize has every incentive to flee to small models on commodity hardware and never
 >     touch the data centers being built for it. The tool is real. The build-out isn't priced on the tool.
 
@@ -60,7 +61,7 @@ chopped into one or more numeric pieces. These tokens are then mapped to numbers
 using a process as embedding. For clarity and simplicity, we will ignore the distinction between tokens and words
 throughout our examples.
 
-Anyway, think of the LLM as a function $f(x)$ that takes a sequence of tokens $x$ and returns a single next token, $y$,
+Anyway, think of the LLM as a function $f(x)that takes a sequence of tokens $xand returns a single next token, $y$,
 that is probabilistically chosen based entirely on that preceding sequence. The model is trained by iteratively updating
 its internal weights using text. In a single training step, we take a sequence of text, remove the very last token to
 create an incomplete sequence ($x'$), and then compute $f(x') \rightarrow y$.
@@ -76,11 +77,11 @@ basically produces magic.  The foundation of even the most advanced modern model
 > * **Model Prediction ($y$):** "coop"
 >
 >
-> The internal weights are updated based on the $error(\text{"road"}, \text{"coop"})$ to "teach" the function the statistically correct word in this specific context.
+> The internal weights are updated based on the $error(\text{"road"}, \text{"coop"})to "teach" the function the statistically correct word in this specific context.
 
 ### Context Windows
 
-The **context window** is the hard limit on the maximum size of the input sequence, $x$, that can be fed into $f(x)$ at
+The **context window** is the hard limit on the maximum size of the input sequence, $x$, that can be fed into $f(x)at
 any one time. Modern frontier models have context windows spanning anywhere from hundreds of thousands to multiple
 millions of tokens.
 
@@ -99,14 +100,14 @@ workaround, exceeding the window means losing fidelity.
 We started with GPT-like chatbots that were used to have turn-based interactions between a person and an LLM. In fact,
 this is how most people still interact with LLMs. Here is how turn-based interactions work. A human sends a question,
 statement, rant or whatever to the LLM. This is tokenized into $x$. A process will generate a new token using $f(x)$,
-appending the resulting token to the sequence at each step. The updated sequence is fed into $f(x)$ at each step. The
+appending the resulting token to the sequence at each step. The updated sequence is fed into $f(x)at each step. The
 process stops when the resulting token is a special `STOP` token. The result is decoded from tokens into words in the
 original language and sent to the user. Since this is an iterative process, we can stream token-by-token back to the
 user.
 
 Each turn results in the sequence getting larger and larger. For example, assume an initial query, $x_0$, and initial
-response $r_0$. The second turn from the human will send $concat(x_0, r_0, x_1)$ to the LLM, which will result in $r_1$.
-The third turn will send $concat(x_0, r_0, x_1, r_1, x_2)$ and so on. If the concatenation exceeds the context window,
+response $r_0$. The second turn from the human will send $concat(x_0, r_0, x_1)to the LLM, which will result in $r_1$.
+The third turn will send $concat(x_0, r_0, x_1, r_1, x_2)and so on. If the concatenation exceeds the context window,
 the backing system can either return an error or it can try to compact the sequence potentially pissing the user off as
 we discuss above.
 
@@ -116,7 +117,7 @@ we discuss above.
 > * **Human Response:** "That is a dumb joke"
 > * **LLM Response:** "You hit the nail on the head and are so right!"
 >
-> Final evaluation: $f($`"<human>Tell me a joke</human><ai>Why did the chicken cross the road?</ai><human>That is a dumb joke</human>"` $) \rightarrow$ "You hit the nail on the head and are so right!"
+> Final evaluation: $f($`"<human>Tell me a joke</human><ai>Why did the chicken cross the road?</ai><human>That is a dumb joke</human>"` $) \rightarrow"You hit the nail on the head and are so right!"
 >
 
 I hope this example shatters any anthropomorphic illusion you may have about LLMs. There is no memory in the traditional
@@ -131,18 +132,18 @@ with each other!?!?!
 > * **Person 8 (Hannah):** "Hi everyone, I’m Bob. And I’m Alice. And I’m Charlie. [...six lines of repetition omitted for sanity...]. And I’m Hannah. The server is down."
 >
 >
-> Final evaluation required just to hear from Hannah: $concat(\text{Bob}, \text{Alice}, \text{Charlie}, \text{Dave}, \text{Ellen}, \text{Frank}, \text{Grace}) \rightarrow$ "The server is down."
+> Final evaluation required just to hear from Hannah: $concat(\text{Bob}, \text{Alice}, \text{Charlie}, \text{Dave}, \text{Ellen}, \text{Frank}, \text{Grace}) \rightarrow"The server is down."
 
 ### The Scaling Laws
 
 Many eons ago in the early 2020s, the industry operated under an unintuitive assumption: more data, more compute, and more
 weights would lead to proportionally mo' smarter models. This was the era of the initial scaling laws.
 
-Unfortunately, the tech giants quickly ran into two massive walls. First, high-quality human training data is
-finite, and we have already trained these models on virtually the entire internet. Second, the labs hit a
-wall of diminishing marginal returns. They discovered that achieving linear improvements in model performance required
+Unfortunately, the tech giants quickly ran into two massive challenges. First, high-quality human training data is
+finite, and we have already trained these models on virtually the entire internet. Second, the labs hit
+diminishing marginal returns. They discovered that achieving linear improvements in model performance required
 exponential increases in data, parameter size, and computing power (this was formalized by the Chinchilla scaling
-laws).
+laws).  It's not that we hit a hard ceiling, but the additional gains are simply not worth the cost.
 
 At this point, the industry was left with three choices: have the snake eat its own tail by training new models on
 flawed synthetic data, wait for an unimaginable amount of new computing power to magically become available, or figure
@@ -161,16 +162,16 @@ At a high level, CoT and agents are cut from the exact same architectural cloth.
 rolling context window as their current operational state at each step.
 
 I hope something is clear now. Much of the impressive AI breakthroughs we have witnessed over the last few years have
-not been driven by a radical revolution in the underlying foundational models. The core next-token prediction math
-remains identical. Instead, the real engineering leap has been in the design of these wrapper state machines built *on
-top* of the models—finding clever ways to let the function iteratively interact with itself or its environment to eke
-out better results.
+not been driven by a change in the underlying mechanism. The core next-token prediction remains the identical. The key
+is that the weights have been trained, via reinforcement training (RL), to drive agentic loops, which allows the models to
+self-reason and call external tools when they see fit. The engineering leap has been in the state machines build on top
+of them and retraining the underlying model to operate as part of the state machine.
 
 ### Chain-of-Thought
 
-Ok, let's talk about chain-of-thought. Instead of taking the human query $x$ and immediately generating the first token
-of the visible response $r_0$, the model leverages $f(x)$ to iterate with itself in a hidden scratchpad. It generates a
-long sequence of internal "thinking" tokens, appending each back into $f(x)$ exactly like turn-based chat, but is
+Ok, let's talk about chain-of-thought. Instead of taking the human query $xand immediately generating the first token
+of the visible response $r_0$, the model leverages $f(x)to iterate with itself in a hidden scratchpad. It generates a
+long sequence of internal "thinking" tokens, appending each back into $f(x)exactly like turn-based chat, but is
 typically obscured from the user. This internal loop allows the model to map out logic, evaluate intermediate
 mathematical steps, and catch its own errors entirely within its own weights before committing to a visible answer. Only
 when the model decides this internal process is complete does it transition to generating the final response sequence
@@ -192,7 +193,7 @@ getting rid of older tokens in the sequence. Think of the context window as the 
 methods of discovery or access to the agent's long-term memory.
 
 The main difference between CoT and agentic loops is that, in CoT, the state is updated using only direct results from
-$f(x)$ (i.e. model weights), while agents update state using both $f(x)$ and external data via tool calls. This allows agents
+$f(x)(i.e. model weights), while agents update state using both $f(x)and external data via tool calls. This allows agents
 to access long-term memory and fetch up-to-date information via API calls, etc.
 
 While I make a distinction between CoT and agents, note that modern models often interleave tool calls with reasoning,
@@ -211,10 +212,12 @@ do not know exactly why these models are as effective as they are. At this point
 
 Magic aside, there is a foundational catch to the current approach the industry is taking. No matter how many internal
 reasoning scratchpads or external tools you stack on top of $f(x)$, you are still ultimately just looping a stateless,
-probabilistic calculator. In multistep agentic loops, tiny statistical errors compound until the system inevitably
-drifts, breaks, or spins off into oblivion. Because this architecture is optimized for what sounds plausible rather than
-what is objectively true, it can never cross the reliability threshold needed to completely offload human labor. We are
-aggressively building out a trillion-dollar infrastructure for a sci-fi future that may never come.
+probabilistic calculator. The catch is that RL only improves the function where something can grade its attempts
+reliably and cheaply, as we see with the coding use case. Where a grader is ineffective or missing, tiny statistical
+errors compound until the system can drift, break, or spin off into oblivion. Because this architecture is
+optimized for what sounds plausible rather than what is objectively true, it may never cross the reliability threshold
+needed to completely offload human labor. We are aggressively building out a trillion-dollar infrastructure for a sci-fi
+future that may never come.
 
 This reliability ceiling becomes obvious when you look at the data source. These models are trained almost entirely on
 human-generated content.  Humans are deeply flawed. We lie, we make mistakes, and we post things on the internet for
@@ -298,6 +301,14 @@ between AI infrastructure spend and AI ecosystem revenue at roughly **$600B**, a
 capex-to-revenue divergence already exceeds that of the 2001 telecom
 build-out ([Forbes](https://www.forbes.com/sites/jasonkirsch/2026/06/02/the-ai-capex-to-revenue-gap-is-widening---and-markets-are-starting-to-notice/)).
 
+Two quick points before moving on, to make sure I don't get flak for ignoring depreciation and the general-use aspects
+of the build-out. First, hardware has a depreciation schedule, usually between 3–6 years, so the cost of something
+bought in 2026 is spread over the lifetime of that component. Second, the data center build-out includes the
+infrastructure to host the GPU capacity needed to serve tokens, which can be re-purposed for any other cloud-like use
+case. Both points cut against the "numbers don't add up" narrative. But I don't think either of these points closes the
+gap, because the spend isn't sized to a rational number people can measure. It is sized to the risk that "the other guy" will get
+there first. This is an arms race, where the spend stops when someone wins or runs out of money.
+
 For the cases that follow, the capex is the fixed quantity and demand is the open question. Rather than assert a revenue
 figure I have to defend, I try to build the demand side from the ground up. I built a simple model, and will present a
 few potential outcomes. An interested reader can substitute their assumptions into the model [at the site](https://kmgreen2.github.io/takingourjerbs/). If you can
@@ -364,19 +375,18 @@ about [$85k/year](https://www.bls.gov/news.release/wkyeng.htm) and there are a c
 70,000,000 × $85,540 × 0.25 = $1.5T / year
 ```
 
-This easily clears the line and justifies the capex. There are a few high-level hurdles exist preventing us from replacing white-collar workers
+This easily clears the line and justifies the capex. There are a few high-level hurdles preventing us from replacing white-collar workers
 with agents. These hurdles are reliability and intent.  We will cover additional limitations that also apply in the replacement case when discussing
 white-collar augmentation below.
 
-1. **The Reliability Math**: An agent making $N$ sequential model calls, each with independent failure probability $p$,
+1. **The Reliability Math**: An agent making $Nsequential model calls, each with independent failure probability $p$,
    succeeds at roughly $(1−p)^N$. For example, if we assume that a model provides the correct answer 99% of the time,
    given its current context, then we can expect a 25-step task is correct 78% of the time, a 50-step task is correct
-   60% of the time and a 100-step task is correct about 38% of the time. In reality, the success probability at each step is 
-   highly dependent on how previous steps modified the context. Because this is a rolling state machine, an error at step 2 
-   isn't an isolated failure.  The error injects noise into the input vector for the rest of the run. This "context pollution" or 
-   "state drift" causes the reliability of the system to decay, forcing the model to reason against its own 
-   compounding hallucinations. I will avoid getting into the weeds, but thought it was worth pointing out.
-
+   60% of the time and a 100-step task is correct about 38% of the time.  In reality, the success probability at each step is
+   highly dependent on how previous steps modified the context, for better or worse.  With cheap, reliable oracles, errors can be
+   detected and corrected at each step, so there are cases where the 38% example above would not happen.  That said, there are
+   also cases where errors compound because they are not detected.  I use the example only as an illustration and will just
+   point out that this can only be avoided with automated, reliable detection mechanisms.
 2. **Intent**: Replacement doesn't merely require reliable execution. It requires **eliminating the human who supplies
    intent.** Every system in this essay is a function from context to tokens.  The context comes from a person who
    wants something. Full replacement means the objective itself must be generated *inside* the loop.
@@ -406,18 +416,20 @@ capex line.  While promising, let me explain why this outcome is not likely.
 
 1. **Verification asymmetry**: In software, review is cheaper than writing. In most knowledge work, it isn't. A memo, a
    brief, a financial model, a diagnosis, a strategy deck have no compiler, no test suite, no runtime. When you don't
-   have reliable, automated review, verification cost approaches production cost. When verification cost matches or 
-   exceeds original production cost, the economic surplus of automation collapses to zero. Instead of saving labor, 
-   you merely shift the human's role from a high-leverage "creator" to an exhausted, low-leverage "auditor." This 
-   verification bottleneck is potential economic drag of agentic systems.  This reality is formally modeled in a [2026 MIT 
-   paper](https://arxiv.org/abs/2602.20946), which outlines how biologically bottlenecked human verification bandwidth 
-   caps the ultimate value of cheap machine execution.
+   have reliable, automated review, verification cost approaches production cost. When verification cost matches or
+   exceeds original production cost, the economic surplus of automation collapses to zero. Instead of saving labor, you
+   merely shift the human's role from a high-leverage "creator" to an exhausted, low-leverage "auditor." This
+   verification bottleneck is a potential economic drag of agentic systems. This reality is formally modeled in
+   a [2026 MIT paper](https://arxiv.org/abs/2602.20946), which outlines how biologically bottlenecked human verification
+   bandwidth caps the ultimate value of cheap machine execution. This is the cheap, reliable grader problem from earlier landing on the
+   revenue side.  That is, many other forms of work (including white-collar) do not have the fast oracles needed to quickly improve
+   the technology.
 2. **Token usage asymmetry**:  Coding agents iterate against a fast, free oracle. That loop is what makes them work.
    Knowledge work has no fast oracle.  In this case, the agent either loops without signal or terminates
    early and hands a plausible artifact to a human who must fully verify it. You get the token cost of agentic reasoning
    without the reliability benefit of the feedback loop.
 3. **Context asymmetry**:  A repository is bounded, retrievable, textual. The context required to write a good strategy
-   memo includes the last three off sites, the CEO's temperament, the client's unstated politics, and the thing everyone
+   memo includes the last three off-sites, the CEO's temperament, the client's unstated politics, and the thing everyone
    knows but nobody wrote. That context is in no corpus and cannot be paged into a context window, because it was never
    externalized. The statelessness argument bites hardest here, since the model has no memory, and the state that matters was
    never written down to begin with.
@@ -483,7 +495,7 @@ wrong. Where those oracles exist, the tool is real and here to stay.
 
 But a useful tool in a single domain does not justify a huge data center build-out. Total success in software is a
 rounding error against the capex. A sea change like white-collar displacement, which is needed to justify the capex,
-needs reliability the architecture can't reach and an price that stays high enough to fill the revenue while low enough
+needs reliability the architecture can't reach and a price that stays high enough to fill the revenue while low enough
 to justify firing the human. Large-scale white-collar augmentation, the plausible middle, still falls short, due to the
 many asymmetries compared to the coding use case. And because inference is stateless, the cheap work has every reason to
 flee the data centers the capex is building.
