@@ -110,7 +110,8 @@ Each turn results in the sequence getting larger and larger. For example, assume
 response $r_0$. The second turn from the human will send $concat(x_0, r_0, x_1)$ to the LLM, which will result in $r_1$.
 The third turn will send $concat(x_0, r_0, x_1, r_1, x_2)$ and so on. If the concatenation exceeds the context window,
 the backing system can either return an error or it can try to compact the sequence potentially pissing the user off as
-we discuss above.
+we discuss above.  [Utkarsh Kanwat](https://utkarshkanwat.com/writing/betting-against-agents) also points this out when explaining
+token economics.
 
 > **Turn-Based Chat Example:**
 > * **Human Initial Request:** "Tell me a joke!"
@@ -214,11 +215,12 @@ do not know exactly why these models are as effective as they are. At this point
 Magic aside, there is a foundational catch to the current approach the industry is taking. No matter how many internal
 reasoning scratchpads or external tools you stack on top of $f(x)$, you are still ultimately just looping a stateless,
 probabilistic calculator. The catch is that RL only improves the function where something can grade its attempts
-reliably and cheaply, as we see with the coding use case. Where a grader is ineffective or missing, tiny statistical
-errors compound until the system can drift, break, or spin off into oblivion. Because this architecture is
-optimized for what sounds plausible rather than what is objectively true, it may never cross the reliability threshold
-needed to completely offload human labor. We are aggressively building out a trillion-dollar infrastructure for a sci-fi
-future that may never come.
+reliably and cheaply, as we see with the coding use
+case [Wei](https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law). Where a grader is ineffective or
+missing, tiny statistical errors compound until the system can drift, break, or spin off into oblivion. Because this
+architecture is optimized for what sounds plausible rather than what is objectively true, it may never cross the
+reliability threshold needed to completely offload human labor. We are aggressively building out a trillion-dollar
+infrastructure for a sci-fi future that may never come.
 
 This reliability ceiling becomes obvious when you look at the data source. These models are trained almost entirely on
 human-generated content.  Humans are deeply flawed. We lie, we make mistakes, and we post things on the internet for
@@ -350,7 +352,8 @@ those lines in hours.
 Code is the killer agentic app, because it has independent, cheap, automated oracles: a compiler, a test suite, a
 linter, a runtime that crashes or doesn't. The agentic loop functions because it can iterate against fast signals by
 running tests, reading the error and retrying. Try to run the program, look at the output, retry. And so on. This is the
-entire reason agentic coding is the leading use case, and it is a property of the domain, not of the model.
+entire reason agentic coding is the leading use case, and it is a property of the domain, not of the
+model, as mentioned by [Jagged Intelligence from Karpathy](https://karpathy.bearblog.dev/year-in-review-2025/).
 
 > Sidebar on Verification: Complete verification is possible in theory but never complete in practice. Its incompleteness is
 > precisely where a probabilistic generator's errors hide. Tests verify the paths you and the agent thought to test.
@@ -397,11 +400,14 @@ white-collar augmentation below.
 1. **The Reliability Math**: An agent making $N$ sequential model calls, each with independent failure probability $p$,
    succeeds at roughly $(1−p)^N$. For example, if we assume that a model provides the correct answer 99% of the time,
    given its current context, then we can expect a 25-step task is correct 78% of the time, a 50-step task is correct
-   60% of the time and a 100-step task is correct about 38% of the time.  In reality, the success probability at each step is
-   highly dependent on how previous steps modified the context, for better or worse.  With cheap, reliable oracles, errors can be
-   detected and corrected at each step, so there are cases where the 38% example above would not happen.  That said, there are
-   also cases where errors compound because they are not detected.  I use the example only as an illustration and will just
-   point out that this can only be avoided with automated, reliable detection mechanisms.
+   60% of the time and a 100-step task is correct about 38% of the time. In reality, the success probability at each
+   step is highly dependent on how previous steps modified the context, for better or worse. With cheap, reliable
+   oracles, errors can be detected and corrected at each step, so there are cases where the 38% example above would not
+   happen. That said, there are also cases where errors compound because they are not detected. I use the example only
+   as an illustration and will just point out that this can only be avoided with automated, reliable detection
+   mechanisms.  [Rabanser et. al.](https://arxiv.org/pdf/2602.16666) recently put out a very detailed analysis showing
+   that reliability is lagging behind model capability and has recommendations for treating reliability as an
+   independent measure of progress.
 2. **Intent**: Replacement doesn't merely require reliable execution. It requires **eliminating the human who supplies
    intent.** Every system in this essay is a function from context to tokens.  The context comes from a person who
    wants something. Full replacement means the objective itself must be generated *inside* the loop.
@@ -450,12 +456,24 @@ capex line.  While promising, let me explain why this outcome is not likely.
    never written down to begin with.
 4. **Adoption asymmetry**: Developers self-serve and adopt bottom-up. Enterprise white-collar adoption is procurement,
    compliance, training, and workflow redesign. Universal adoption at 10% of wages assumes an adoption curve no
-   enterprise technology has ever achieved.  Furthermore, it assumes it happens inside the capex depreciation window.
+   enterprise technology has ever achieved. Furthermore, it assumes it happens inside the capex depreciation window.
+   The [AI as a Normal Technology](https://knightcolumbia.org/content/ai-as-normal-technology) essay explicitly
+   discusses that diffusion is limited by human and organizational change.
 5. **Regulated domains**: Medicine, law, audit, finance have liability regimes that require a named human to
    sign. Augmentation there is capped by statute, not capability.
 
 $599B requires universal adoption, sustained forever, in domains that have none of the cheap verification that makes
 software work, at a spend rate borrowed from the one field that does.
+
+> Sidebar on Manufactured Oracles: One solution here is to build an oracle if a domain does not have one. Construct RL
+> environments
+> with [graders for law, medicine and customer service](https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law),
+> and run [autoraters](https://cloud.google.com/transform/ai-grew-up-and-got-a-job-lessons-from-2025-on-agents-and-trust)
+> at inference time to catch errors before they compound. If that spits-out quick, reliable oracles, then the capex is
+> rational. But an autorater is not a deterministic process like a compiler, unit test or linter. It is the same
+> stateless, probabilistic next-token predictor checking the other stateless, probabilistic... You get it. In this case,
+> the bet is on the claim that verification can be manufactured for domains that never had it, by the architecture that
+> needs it. Nobody has demonstrated that anywhere, at any scale.
 
 ### Case 4: Decide for yourself
 
