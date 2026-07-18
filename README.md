@@ -26,12 +26,12 @@
 >      model.  This means switching costs are proportional to managing context, tools and routing.  This will become
 >      more important as we see more specialized local models, where inference can happen on a laptop, and where users
 >      can decide to route on-demand based on price, domain or whatever.
-> 5. **The build-out is priced as though 1-4 are not true**: A trillion dollars a year only pays back if agents get
->     reliable enough to displace workers wholesale.  This also assumes that demand lands on hosted frontier models, and it
->     does so inside the depreciation window. (2) reliability stays capped outside domains with cheap verification,
->     and (3) says most white-collar work cannot be cheaply verified.  In (4), the cheap, high-volume tail
->     of whatever demand does materialize has every incentive to flee to small models on commodity hardware and never
->     touch the data centers being built for it. The tool is real. The build-out isn't priced on the tool.
+> 5. **The build-out is priced as though 1–4 are not true**: A trillion dollars a year only pays back if agents get reliable
+>      enough to displace workers wholesale, the demand lands on hosted frontier models, and all of it happens inside the
+>      depreciation window. But (2) says reliability stays capped outside domains with cheap verification, (3) says most
+>      white-collar work has no such verification, and (4) says the cheap, high-volume tail of whatever demand does materialize
+>      has every incentive to flee to small models on commodity hardware and never touch the data centers being built for it.
+>      The tool is real. The build-out isn't priced on the tool.
 
 ---
 
@@ -110,8 +110,7 @@ Each turn results in the sequence getting larger and larger. For example, assume
 response $r_0$. The second turn from the human will send $concat(x_0, r_0, x_1)$ to the LLM, which will result in $r_1$.
 The third turn will send $concat(x_0, r_0, x_1, r_1, x_2)$ and so on. If the concatenation exceeds the context window,
 the backing system can either return an error or it can try to compact the sequence potentially pissing the user off as
-we discuss above.  [Utkarsh Kanwat](https://utkarshkanwat.com/writing/betting-against-agents) also points this out when explaining
-token economics.
+we discuss above.
 
 > **Turn-Based Chat Example:**
 > * **Human Initial Request:** "Tell me a joke!"
@@ -142,10 +141,10 @@ Many eons ago in the early 2020s, the industry operated under an unintuitive ass
 weights would lead to proportionally mo' smarter models. This was the era of the initial scaling laws.
 
 Unfortunately, the tech giants quickly ran into two massive challenges. First, high-quality human training data is
-finite, and we have already trained these models on virtually the entire internet. Second, the labs hit
-diminishing marginal returns. They discovered that achieving linear improvements in model performance required
-exponential increases in data, parameter size, and computing power (this was formalized by the Chinchilla scaling
-laws).  It's not that we hit a hard ceiling, but the additional gains are simply not worth the cost.
+finite, and we have already trained these models on virtually the entire internet. Second, the labs hit diminishing
+marginal returns. They discovered that achieving linear improvements in model performance required exponential increases
+in data, parameter size, and computing power. It's not that we hit a hard ceiling, but the additional gains are simply
+not worth the cost.
 
 At this point, the industry was left with three choices: have the snake eat its own tail by training new models on
 flawed synthetic data, wait for an unimaginable amount of new computing power to magically become available, or figure
@@ -216,18 +215,19 @@ Magic aside, there is a foundational catch to the current approach the industry 
 reasoning scratchpads or external tools you stack on top of $f(x)$, you are still ultimately just looping a stateless,
 probabilistic calculator. The catch is that RL only improves the function where something can grade its attempts
 reliably and cheaply, as we see with the coding use
-case [Wei](https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law). Where a grader is ineffective or
-missing, tiny statistical errors compound until the system can drift, break, or spin off into oblivion. Because this
+case, also formalized as [the verifier's law](https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law). Where a grader is ineffective or
+missing, tiny statistical [errors compound](https://utkarshkanwat.com/writing/betting-against-agents) until the system can drift, break, or spin off into oblivion. Because this
 architecture is optimized for what sounds plausible rather than what is objectively true, it may never cross the
 reliability threshold needed to completely offload human labor. We are aggressively building out a trillion-dollar
 infrastructure for a sci-fi future that may never come.
 
 This reliability ceiling becomes obvious when you look at the data source. These models are trained almost entirely on
-human-generated content.  Humans are deeply flawed. We lie, we make mistakes, and we post things on the internet for
+human-generated content. Humans are deeply flawed. We lie, we make mistakes, and we post things on the internet for
 shits and giggles. We also do great things and have surprising insights, but the model mirrors the garbage right along
 with the genius. There is a dangerous, pervasive assumption in Silicon Valley that AI will eventually iterate its way
 to "perfection," completely ignoring the reality that a statistical mirror can be no better than the data it is
-reflecting.
+reflecting. This can be mitigated in domains with a deterministic, reliable oracle, like the coding use case. Everywhere
+else, the grader is human feedback or a model trained on human feedback, so it's a mirror grading a mirror.
 
 This brings us to the industry's favorite new narrative, which is the claim that humans are transitioning from "creators" to "
 reviewers." I agree to a certain extent, seeing I spend far more time reviewing generated output today than I did a year
@@ -353,7 +353,7 @@ Code is the killer agentic app, because it has independent, cheap, automated ora
 linter, a runtime that crashes or doesn't. The agentic loop functions because it can iterate against fast signals by
 running tests, reading the error and retrying. Try to run the program, look at the output, retry. And so on. This is the
 entire reason agentic coding is the leading use case, and it is a property of the domain, not of the
-model, as mentioned by [Jagged Intelligence from Karpathy](https://karpathy.bearblog.dev/year-in-review-2025/).
+model, as mentioned by [Karpathy](https://karpathy.bearblog.dev/year-in-review-2025/).
 
 > Sidebar on Verification: Complete verification is possible in theory but never complete in practice. Its incompleteness is
 > precisely where a probabilistic generator's errors hide. Tests verify the paths you and the agent thought to test.
@@ -528,7 +528,7 @@ wrong. Where those oracles exist, the tool is real and here to stay.
 
 But a useful tool in a single domain does not justify a huge data center build-out. Total success in software is a
 rounding error against the capex. A sea change like white-collar displacement, which is needed to justify the capex,
-needs reliability the architecture can't reach and a price that stays high enough to fill the revenue while low enough
+with oracles nobody has demonstrated can be manufactured and a price that stays high enough to fill the revenue while low enough
 to justify firing the human. Large-scale white-collar augmentation, the plausible middle, still falls short, due to the
 many asymmetries compared to the coding use case. And because inference is stateless, the cheap work has every reason to
 flee the data centers the capex is building.
