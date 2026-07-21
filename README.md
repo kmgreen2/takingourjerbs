@@ -323,7 +323,22 @@ of the build-out. First, hardware has a depreciation schedule, usually between 3
 bought in 2026 is spread over the lifetime of that component. Second, the data center build-out includes the
 infrastructure to host the GPU capacity needed to serve tokens, which can be re-purposed for any other cloud-like use
 case. Both points cut against the "numbers don't add up" narrative. But I don't think either of these points closes the
-gap, because the spend isn't sized to a rational number people can measure. It is sized to the risk that "the other guy" will get
+gap for three reasons.
+
+First, while the building might find another tenant, but the bulk of the spend is the GPUs inside it, and those age out
+on that same 3–6 year schedule no matter what the shell gets used for. You can't repurpose a depreciated GPU into
+anything but a depreciated GPU.
+
+Second, even the shell is harder to re-purpose than the argument assumes. Reverse-retrofitting a high-density, AI-built
+facility into a lower-density, standard cloud or enterprise space would be running those workloads on massively
+overbuilt infrastructure in potentially non-ideal locations:
+
+- A data center purpose-built for AI, requires 100 kW per rack.  Downgrading to standard server workloads of 5-10 kW leaves facilities
+  [heavily underutilized and overbuilt](https://www.datacenterknowledge.com/data-center-construction/analysts-warn-of-overbuild-risks-as-ai-data-centers-reshape-industry)
+- AI data centers require advanced liquid cooling, opposed to the standard air cooling used in a standard cloud data center
+- AI sites located near power sources instead of population centers could face logistical challenges for [latency-sensitive workloads](https://www.techtarget.com/searchenterpriseai/post/AI-turns-data-center-power-into-an-enterprise-challenge)
+
+Finally, the spend isn't sized to a rational number people can measure. It is sized to the risk that "the other guy" will get
 there first. This is an arms race, where the spend stops when someone wins or runs out of money.
 
 For the cases that follow, the capex is the fixed quantity and demand is the open question. Rather than assert a revenue
